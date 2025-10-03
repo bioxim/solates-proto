@@ -1,2 +1,36 @@
 @import "tailwindcss";
 
+:root {
+  --color-primary: #00C2FF;
+}
+
+.bg-primary {
+  background-color: var(--color-primary);
+}
+
+.text-primary {
+  color: var(--color-primary);
+}
+
+/* --- Light theme (default) --- */
+:root {
+  --bg: #ffffff;
+  --card: #f9fafb;
+  --text: #111827;
+  --text-secondary: #4b5563;
+  --primary: #00c2ff;
+  --primary-dark: #00e0ff;
+  --secondary: #16a34a;
+  --secondary-dark: #22c55e;
+  --accent-yellow: #ffd95a;
+}
+
+/* --- Dark theme --- */
+.dark {
+  --bg: #0b1120;
+  --card: #111827;
+  --text: #e5e7eb;
+  --text-secondary: #9ca3af;
+  --primary: #00e0ff;
+  --secondary: #22c55e;
+}
