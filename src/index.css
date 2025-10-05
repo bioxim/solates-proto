@@ -1,7 +1,11 @@
 @import "tailwindcss";
 
 :root {
-  --color-primary: #00C2FF;
+  --color-primary: #7c00b6;
+  --bg: #f9fafb;
+  --card: #e4e4e7;
+  --text: #1f1f23;
+  --primary: #8b5cf6; /* violeta brillante */
 }
 
 .bg-primary {
@@ -12,14 +16,18 @@
   color: var(--color-primary);
 }
 
+button, a {
+  cursor: pointer;
+}
+
 /* --- Light theme (default) --- */
 :root {
   --bg: #ffffff;
-  --card: #f9fafb;
-  --text: #111827;
-  --text-secondary: #4b5563;
-  --primary: #00c2ff;
-  --primary-dark: #00e0ff;
+  --card: #ebd8f8;
+  --text: #270c46;
+  --text-secondary: #3c2a4b;
+  --primary: #cc00ff;
+  --primary-dark: #7c00b6;
   --secondary: #16a34a;
   --secondary-dark: #22c55e;
   --accent-yellow: #ffd95a;
@@ -30,7 +38,7 @@
   --bg: #0b1120;
   --card: #111827;
   --text: #e5e7eb;
+  --primary: #9506d7;
   --text-secondary: #9ca3af;
-  --primary: #00e0ff;
   --secondary: #22c55e;
 }

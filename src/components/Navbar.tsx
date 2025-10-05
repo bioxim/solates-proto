@@ -1,95 +1,139 @@
-import { useState } from "react";
-import { Sun, Moon } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Sun, Moon, UserCircle, LogOut } from "lucide-react";
 import { Link } from "react-router-dom";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import { auth } from "../firebase";
+import LoginModal from "./LoginModal";
 import logo from "../assets/logo-tr.png";
 
 export default function Navbar() {
-  const [isDark, setIsDark] = useState(() =>
-    document.documentElement.classList.contains("dark")
-  );
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [user, setUser] = useState<any>(null);
+  const [showLogin, setShowLogin] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
-  const toggleTheme = () => {
-    document.documentElement.classList.toggle("dark");
-    setIsDark(!isDark);
-  };
+  // Tema
+  const [isDark, setIsDark] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem("theme");
+      if (saved === "dark") return true;
+      if (saved === "light") return false;
+      return window.matchMedia("(prefers-color-scheme: dark)").matches;
+    } catch {
+      return true;
+    }
+  });
 
-  const handleLogin = () => {
-    setIsLoggedIn(true);
-  };
+  // Sync DOM + persistencia
+  useEffect(() => {
+    if (isDark) document.documentElement.classList.add("dark");
+    else document.documentElement.classList.remove("dark");
 
-  const handleLogout = () => {
-    setIsLoggedIn(false);
+    localStorage.setItem("theme", isDark ? "dark" : "light");
+  }, [isDark]);
+
+  // Auth listener
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (u) => setUser(u));
+    return () => unsub();
+  }, []);
+
+  const toggleTheme = () => setIsDark((v) => !v);
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    setMenuOpen(false);
   };
 
   return (
-    <nav className="flex items-center justify-between px-6 py-4 border-b border-[var(--card)] bg-[var(--bg)] text-[var(--text)]">
-      {/* Logo + Links */}
-      <div className="flex items-center gap-8">
-        <Link to="/" className="flex items-center gap-2">
-          <img
-            src={logo}
-            alt="Solates Logo"
-            className="h-9 w-auto object-contain"
-          />
-          <span className="text-2xl font-bold">Solates</span>
-        </Link>
+    <>
+      <nav className="flex items-center justify-between px-6 py-4 bg-[var(--bg)] border-b border-[var(--card)] relative">
+        {/* LEFT */}
+        <div className="flex items-center gap-6">
+          <Link to="/" className="flex items-center gap-3">
+            <img src={logo} alt="Solates" className="w-8 h-8 object-contain" />
+            <span className="text-lg font-semibold">Solates</span>
+          </Link>
 
-        <ul className="flex gap-6 font-medium">
-          <li>
+          <div className="hidden md:flex items-center gap-5 text-sm">
             <Link to="/" className="hover:text-[var(--primary)]">Home</Link>
-          </li>
-          <li>
             <Link to="/docs" className="hover:text-[var(--primary)]">Docs</Link>
-          </li>
-          <li>
             <Link to="/airdrop" className="hover:text-[var(--primary)]">Airdrop</Link>
-          </li>
-          <li>
             <Link to="/leaderboard" className="hover:text-[var(--primary)]">Leaderboard</Link>
-          </li>
-        </ul>
-      </div>
-
-      {/* Theme toggle + Auth */}
-      <div className="flex items-center gap-4">
-        {/* Toggle theme */}
-        <button
-          onClick={toggleTheme}
-          className="p-2 rounded-full hover:bg-[var(--card)]"
-        >
-          {isDark ? (
-            <Moon className="w-5 h-5 text-[var(--text)]" />
-          ) : (
-            <Sun className="w-5 h-5 text-yellow-500" />
-          )}
-        </button>
-
-        {/* Login/Profile */}
-        {!isLoggedIn ? (
-          <button
-            onClick={handleLogin}
-            className="px-4 py-2 rounded-lg bg-[var(--primary)] text-white font-semibold hover:opacity-90"
-          >
-            Login
-          </button>
-        ) : (
-          <div className="flex items-center gap-3">
-            <Link
-              to="/profile"
-              className="w-9 h-9 rounded-full bg-[var(--primary)] flex items-center justify-center text-white font-bold"
-            >
-              U
-            </Link>
-            <button
-              onClick={handleLogout}
-              className="text-sm text-[var(--text-secondary)] hover:text-[var(--primary)]"
-            >
-              Logout
-            </button>
           </div>
-        )}
-      </div>
-    </nav>
+        </div>
+
+        {/* RIGHT */}
+        <div className="flex items-center gap-4 relative">
+          {/* Theme toggle */}
+          <button
+            aria-label="Toggle theme"
+            onClick={toggleTheme}
+            className="p-2 rounded-full hover:bg-[var(--card)] transition"
+            title={isDark ? "Switch to light" : "Switch to dark"}
+          >
+            {isDark ? (
+              <Moon className="w-5 h-5 text-[var(--text)]" />
+            ) : (
+              <Sun className="w-5 h-5 text-yellow-400" />
+            )}
+          </button>
+
+          {/* Login / Avatar */}
+          {!user ? (
+            <button
+              onClick={() => setShowLogin(true)}
+              className="px-4 py-2 rounded-lg bg-[var(--primary)] text-white font-semibold hover:opacity-90 transition"
+            >
+              Login
+            </button>
+          ) : (
+            <div className="relative">
+              <button
+                onClick={() => setMenuOpen(!menuOpen)}
+                className="flex items-center justify-center w-9 h-9 rounded-full border border-[var(--card)] overflow-hidden hover:scale-105 transition"
+              >
+                <img
+                  src={
+                    user.photoURL ||
+                    `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                      user.displayName || user.email || "User"
+                    )}&background=6C47FF&color=fff&size=128`
+                  }
+                  alt="avatar"
+                  className="w-9 h-9 rounded-full border border-[var(--card)] object-cover hover:scale-105 transition"
+                />
+
+              </button>
+
+              {menuOpen && (
+                <div
+                  className="absolute right-0 mt-3 w-40 bg-[var(--card)] border border-gray-700 rounded-xl shadow-lg overflow-hidden z-50"
+                  onMouseLeave={() => setMenuOpen(false)}
+                >
+                  <Link
+                    to="/dashboard"
+                    onClick={() => setMenuOpen(false)}
+                    className="block px-4 py-2 text-sm hover:bg-[var(--primary)]/10 transition text-[var(--text)]"
+                  >
+                    Dashboard
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full text-left px-4 py-2 flex items-center gap-2 text-sm text-red-400 hover:text-red-500 hover:bg-red-500/10 transition"
+                  >
+                    <LogOut size={16} />
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </nav>
+
+      {/* Login modal */}
+      {showLogin && <LoginModal onClose={() => setShowLogin(false)} />}
+    </>
   );
 }
