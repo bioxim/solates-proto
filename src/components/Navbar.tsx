@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { Sun, Moon, LogOut } from "lucide-react";
+import { Sun, Moon } from "lucide-react";
 import { Link } from "react-router-dom";
-import { onAuthStateChanged, signOut } from "firebase/auth";
+import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../firebase";
 import LoginModal from "./LoginModal";
 import logo from "../assets/logo-tr.png";
@@ -40,10 +40,6 @@ export default function Navbar() {
 
   const toggleTheme = () => setIsDark((v) => !v);
 
-  const handleLogout = async () => {
-    await signOut(auth);
-    setMenuOpen(false);
-  };
 
   return (
     <>
@@ -104,28 +100,6 @@ export default function Navbar() {
                   className="w-9 h-9 rounded-full border border-[var(--card)] object-cover hover:scale-105 transition"
                 />
               </button>
-
-              {menuOpen && (
-                <div
-                  className="absolute right-0 mt-3 w-40 bg-[var(--card)] border border-gray-700 rounded-xl shadow-lg overflow-hidden z-50"
-                  onMouseLeave={() => setMenuOpen(false)}
-                >
-                  <Link
-                    to="/dashboard"
-                    onClick={() => setMenuOpen(false)}
-                    className="block px-4 py-2 text-sm hover:bg-[var(--primary)]/10 transition text-[var(--text)]"
-                  >
-                    Dashboard
-                  </Link>
-                  <button
-                    onClick={handleLogout}
-                    className="w-full text-left px-4 py-2 flex items-center gap-2 text-sm text-red-400 hover:text-red-500 hover:bg-red-500/10 transition"
-                  >
-                    <LogOut size={16} />
-                    Logout
-                  </button>
-                </div>
-              )}
             </div>
           )}
         </div>
