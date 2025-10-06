@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Sun, Moon, UserCircle, LogOut } from "lucide-react";
+import { Sun, Moon, LogOut } from "lucide-react";
 import { Link } from "react-router-dom";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "../firebase";
@@ -47,7 +47,7 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="flex items-center justify-between px-6 py-4 bg-[var(--bg)] border-b border-[var(--card)] relative">
+      <nav className="flex items-center justify-between px-6 py-4 bg-[var(--bg)] border-b border-[var(--card)] relative z-50">
         {/* LEFT */}
         <div className="flex items-center gap-6">
           <Link to="/" className="flex items-center gap-3">
@@ -93,15 +93,16 @@ export default function Navbar() {
                 onClick={() => setMenuOpen(!menuOpen)}
                 className="flex items-center justify-center w-9 h-9 rounded-full border border-[var(--card)] overflow-hidden hover:scale-105 transition"
               >
-                {user.photoURL ? (
-                  <img
-                    src={user.photoURL}
-                    alt="avatar"
-                    className="w-9 h-9 object-cover"
-                  />
-                ) : (
-                  <UserCircle size={28} />
-                )}
+                <img
+                  src={
+                    user.photoURL ||
+                    `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                      user.displayName || user.email || "User"
+                    )}&background=6C47FF&color=fff&size=128`
+                  }
+                  alt="avatar"
+                  className="w-9 h-9 rounded-full border border-[var(--card)] object-cover hover:scale-105 transition"
+                />
               </button>
 
               {menuOpen && (

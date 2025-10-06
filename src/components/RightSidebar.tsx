@@ -40,7 +40,7 @@ export default function RightSidebar() {
       {/* Toggle button */}
       <button
         onClick={() => setOpen(!open)}
-        className="absolute top-16 left-[-26px] bg-[var(--card)] p-1.5 rounded-l-md border border-[var(--card)] hover:bg-[var(--primary)] hover:opacity-90 transition cursor-pointer shadow-md"
+        className="absolute top-20 left-[-26px] bg-[var(--card)] p-1.5 rounded-l-md border border-[var(--card)] hover:bg-[var(--primary)] hover:opacity-90 transition cursor-pointer shadow-md"
         title={open ? "Hide" : "Show"}
       >
         {open ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
