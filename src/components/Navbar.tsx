@@ -54,7 +54,7 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-5 text-sm">
             <Link to="/" className="hover:text-[var(--primary)]">Home</Link>
             <Link to="/docs" className="hover:text-[var(--primary)]">Docs</Link>
-            <Link to="/airdrop" className="hover:text-[var(--primary)]">Airdrop</Link>
+            <Link to="/docs/airdrop/general" className="hover:text-[var(--primary)]">Airdrop</Link>
             <Link to="/leaderboard" className="hover:text-[var(--primary)]">Leaderboard</Link>
           </div>
         </div>

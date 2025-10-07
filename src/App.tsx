@@ -5,9 +5,14 @@ import { onAuthStateChanged } from "firebase/auth";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Home from "./pages/Home";
+// Documents
 import Docs from "./pages/Docs";
 import Airdrop from "./pages/Airdrop";
 import Leaderboard from "./pages/Leaderboard";
+import DocsLayout from "./pages/docs/DocsLayout";
+import General from "./pages/docs/airdrop/General";
+import PointSystem from "./pages/docs/airdrop/PointSystem";
+import Rewards from "./pages/docs/airdrop/Rewards";
 // Users w/login
 import PrivateRoute from "./components/PrivateRoute";
 import RightSidebar from "./components/RightSidebar";
@@ -34,6 +39,11 @@ export default function App() {
             <Route path="/docs" element={<Docs />} />
             <Route path="/airdrop" element={<Airdrop />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
+            <Route path="/docs/airdrop" element={<DocsLayout />}>
+              <Route path="general" element={<General />} />
+              <Route path="pointsystem" element={<PointSystem />} />
+              <Route path="rewards" element={<Rewards />} />
+            </Route>
             <Route
               path="/dashboard"
               element={

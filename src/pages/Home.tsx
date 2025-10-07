@@ -253,7 +253,113 @@ export default function Home() {
           </motion.div>
         </section>
         
-        {/* SECTION 4 */}
+        {/* ====== SECTION 4 — SOLATES TOOLS / JOIN ====== */}
+        <style>{`
+          @keyframes floatUpDown {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+            100% { transform: translateY(0px); }
+          }
+
+          @keyframes pulseGlow {
+            0% { box-shadow: 0 0 15px rgba(108,71,255,0.2); border-color: rgba(177,78,255,0.25); }
+            50% { box-shadow: 0 0 25px rgba(0,234,255,0.45); border-color: rgba(0,234,255,0.5); }
+            100% { box-shadow: 0 0 15px rgba(108,71,255,0.2); border-color: rgba(177,78,255,0.25); }
+          }
+
+          .tool-card {
+            background: linear-gradient(180deg, rgba(177,78,255,0.15) 0%, rgba(0,234,255,0.08) 100%);
+            border: 1px solid rgba(108,71,255,0.25);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            animation: pulseGlow 6s ease-in-out infinite;
+          }
+
+          .tool-card:hover {
+            transform: translateY(-6px) scale(1.03);
+            box-shadow: 0 0 35px rgba(108,71,255,0.6);
+            border-color: rgba(0,234,255,0.6);
+          }
+
+          .join-banner {
+            background: radial-gradient(circle at center, rgba(177,78,255,0.25), rgba(0,0,0,0.9));
+            border-top: 1px solid rgba(177,78,255,0.3);
+          }
+        `}</style>
+
+        <section className="relative py-28 px-6 md:px-20 text-center bg-[#0b021a] text-white overflow-hidden">
+          <motion.h2
+            className="text-4xl md:text-5xl font-bold mb-12 bg-gradient-to-r from-[#b14eff] via-[#00eaff] to-[#ff4ffb] bg-clip-text text-transparent"
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1 }}
+            viewport={{ once: true }}
+          >
+            Tools for the New DeFi Era
+          </motion.h2>
+
+          <motion.p
+            className="text-gray-300 text-lg md:text-xl mb-16 max-w-3xl mx-auto"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            transition={{ duration: 1 }}
+            viewport={{ once: true }}
+          >
+            Solates integrates a powerful suite of tools to guide you through DeFi,  
+            helping you learn, track and grow your portfolio effortlessly.
+          </motion.p>
+
+          {/* Grid de cuadrantes */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 md:gap-10 max-w-6xl mx-auto">
+            {[
+              { title: "Quests", desc: "Complete guided missions that reward you in $OLA as you master DeFi." },
+              { title: "DeFi Alerts", desc: "Monitor liquidity positions, price ranges and yields in real time." },
+              { title: "Airdrop Hub", desc: "Track new airdrops and optimize your eligibility across protocols." },
+              { title: "Portfolio Tracker", desc: "View and analyze all your wallet positions in one clear dashboard." },
+              { title: "Learning Paths", desc: "Structured educational journeys to level up your crypto knowledge." },
+              { title: "Analytics", desc: "Get performance insights and stats powered by Solates Engine." },
+            ].map((item, index) => (
+              <motion.div
+                key={index}
+                className="tool-card rounded-2xl p-6 md:p-8 text-left hover:bg-opacity-80 backdrop-blur-sm"
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7, delay: index * 0.1 }}
+                viewport={{ once: true }}
+              >
+                <h3 className="text-xl font-semibold mb-3 text-[#b14eff]">{item.title}</h3>
+                <p className="text-gray-300 text-sm leading-relaxed">{item.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Banner final “Join Now” */}
+          <motion.div
+            className="join-banner mt-28 py-16 rounded-3xl flex flex-col items-center justify-center"
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1 }}
+            viewport={{ once: true }}
+          >
+            <img
+              src={logo}
+              alt="Solates Logo"
+              className="w-28 h-20 mb-6 animate-[floatUpDown_4s_ease-in-out_infinite]"
+            />
+            <h3 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-[#b14eff] via-[#00eaff] to-[#ff4ffb] bg-clip-text text-transparent">
+              Join Solates Now
+            </h3>
+            <p className="text-gray-300 text-lg mb-8 max-w-xl">
+              Be part of the next wave of DeFi learners, earn $OLA, and grow with the ecosystem.
+            </p>
+            <button
+              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+              className="px-8 py-3 rounded-xl bg-gradient-to-r from-[#b14eff] via-[#6c47ff] to-[#00eaff] text-white font-semibold hover:scale-105 transition-transform shadow-lg"
+            >
+              Get Started
+            </button>
+          </motion.div>
+        </section>
 
       </main>
 
