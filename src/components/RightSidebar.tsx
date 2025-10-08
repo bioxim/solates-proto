@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { auth } from "../firebase";
 import { signOut } from "firebase/auth";
 import {
@@ -7,24 +8,26 @@ import {
   LogOut,
   User,
   Target,
-  Gift,
   Home,
+  Gift,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function RightSidebar() {
   const [open, setOpen] = useState(true);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = async () => {
     await signOut(auth);
-    window.location.href = "/";
+    navigate("/");
   };
 
   const menuItems = [
-    { icon: <User size={20} />, label: "Profile" },
-    { icon: <Target size={20} />, label: "Quests" },
-    { icon: <Home size={20} />, label: "Dashboard" },
-    { icon: <Gift size={20} />, label: "Invite Friends" },
+    { icon: <User size={20} />, label: "Profile", path: "/profile" },
+    { icon: <Target size={20} />, label: "Quests", path: "/quests" },
+    { icon: <Home size={20} />, label: "Dashboard", path: "/dashboard" },
+    { icon: <Gift size={20} />, label: "Invite Friends", path: "/invite-friends" },
   ];
 
   return (
@@ -33,11 +36,10 @@ export default function RightSidebar() {
         open ? "w-64" : "w-16"
       }`}
       style={{
-        background:
-          "linear-gradient(180deg, var(--bg) 0%, var(--card) 100%)",
+        background: "linear-gradient(180deg, var(--bg) 0%, var(--card) 100%)",
       }}
     >
-      {/* Toggle button */}
+      {/* Toggle */}
       <button
         onClick={() => setOpen(!open)}
         className="absolute top-20 left-[-26px] bg-[var(--card)] p-1.5 rounded-l-md border border-[var(--card)] hover:bg-[var(--primary)] hover:opacity-90 transition cursor-pointer shadow-md"
@@ -56,13 +58,8 @@ export default function RightSidebar() {
           transition={{ duration: 0.3 }}
           className="p-4 flex flex-col items-center gap-6 mt-12"
         >
-          {/* Nivel de usuario */}
           {open && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="w-full text-center"
-            >
+            <div className="w-full text-center">
               <p className="text-sm opacity-70">Level</p>
               <div className="mt-2 bg-gray-700 dark:bg-gray-800 rounded-full h-3 overflow-hidden shadow-inner">
                 <motion.div
@@ -73,41 +70,54 @@ export default function RightSidebar() {
                 />
               </div>
               <p className="text-xs mt-1 opacity-60">41 XP • Bronze</p>
-            </motion.div>
+            </div>
           )}
 
-          {/* Opciones */}
+          {/* Menu */}
           <div
             className={`flex flex-col ${
               open ? "items-start" : "items-center"
             } gap-4 w-full mt-4`}
           >
-            {menuItems.map((item, idx) => (
-              <button
-                key={idx}
-                className={`group relative flex items-center gap-3 w-full rounded-lg py-2 px-2 transition-all duration-200 cursor-pointer
-                  ${
-                    open
-                      ? "hover:bg-[var(--primary)]/10"
-                      : "hover:bg-[var(--primary)]/20"
-                  }`}
-              >
-                <motion.div
-                  whileHover={{ scale: 1.1 }}
-                  className="text-[var(--primary)] group-hover:text-[var(--primary)]"
+            {menuItems.map((item, idx) => {
+              const isActive = location.pathname === item.path;
+              return (
+                <button
+                  key={idx}
+                  onClick={() => navigate(item.path)}
+                  className={`group relative flex items-center gap-3 w-full rounded-lg py-2 px-2 transition-all duration-200 cursor-pointer
+                    ${
+                      isActive
+                        ? "bg-[var(--primary)]/20 text-[var(--primary)] font-semibold"
+                        : open
+                        ? "hover:bg-[var(--primary)]/10"
+                        : "hover:bg-[var(--primary)]/20"
+                    }`}
                 >
-                  {item.icon}
-                </motion.div>
+                  <motion.div
+                    whileHover={{ scale: 1.1 }}
+                    className={`${
+                      isActive ? "text-[var(--primary)]" : "text-[var(--text)]"
+                    }`}
+                  >
+                    {item.icon}
+                  </motion.div>
 
-                {open && (
-                  <span className="text-sm font-medium group-hover:text-[var(--primary)] transition">
-                    {item.label}
-                  </span>
-                )}
-              </button>
-            ))}
+                  {open && (
+                    <span
+                      className={`text-sm font-medium transition ${
+                        isActive
+                          ? "text-[var(--primary)]"
+                          : "group-hover:text-[var(--primary)]"
+                      }`}
+                    >
+                      {item.label}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
 
-            {/* Logout */}
             <button
               onClick={handleLogout}
               className={`group flex items-center gap-3 w-full text-red-400 hover:text-red-500 transition py-2 px-2 rounded-lg ${

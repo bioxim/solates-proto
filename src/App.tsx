@@ -18,6 +18,9 @@ import PrivateRoute from "./components/PrivateRoute";
 import RightSidebar from "./components/RightSidebar";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
+import Quests from "./pages/Quests";
+import InviteFriends from "./pages/InviteFriends";
+
 
 export default function App() {
 
@@ -30,9 +33,9 @@ export default function App() {
 
   return (
     <div className="flex flex-col min-h-screen bg-[var(--bg)] text-[var(--text)]">
-      {user && <RightSidebar />}
       <Router>
         <Navbar />
+        {user && <RightSidebar />} {/* ✅ Ahora está dentro del Router */}
         <main className="flex-grow">
           <Routes>
             <Route path="/" element={<Home />} />
@@ -44,6 +47,7 @@ export default function App() {
               <Route path="pointsystem" element={<PointSystem />} />
               <Route path="rewards" element={<Rewards />} />
             </Route>
+
             <Route
               path="/dashboard"
               element={
@@ -52,18 +56,35 @@ export default function App() {
                 </PrivateRoute>
               }
             />
-            <Route 
-              path="/profile" 
+            <Route
+              path="/profile"
               element={
                 <PrivateRoute>
                   <Profile />
                 </PrivateRoute>
-              } 
+              }
+            />
+            <Route
+              path="/quests"
+              element={
+                <PrivateRoute>
+                  <Quests />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/invite-friends"
+              element={
+                <PrivateRoute>
+                  <InviteFriends />
+                </PrivateRoute>
+              }
             />
           </Routes>
         </main>
         <Footer />
       </Router>
     </div>
+
   );
 }
