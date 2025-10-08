@@ -9,6 +9,8 @@ import LoginModal from "../components/LoginModal";
 import logo from "../assets/logo-tr.png";
 import bg from "../assets/solates-bg.mp4";
 import dashboard from "../assets/landing-dashboard.png";
+import Newsletter from "../components/Newsletter";
+
 
 export default function Home() {
   const [showLogin, setShowLogin] = useState(false);
@@ -350,17 +352,12 @@ export default function Home() {
               Join Solates Now
             </h3>
             <p className="text-gray-300 text-lg mb-8 max-w-xl">
-              Be part of the next wave of DeFi learners, earn $OLA, and grow with the ecosystem.
+              Be part of the next wave of DeFi learners, earn $OLA, and grow with the ecosystem.  Subscribe to our newsletter to get early access to updates, airdrop
+            details, and exclusive DeFi rewards.
             </p>
-            <button
-              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-              className="px-8 py-3 rounded-xl bg-gradient-to-r from-[#b14eff] via-[#6c47ff] to-[#00eaff] text-white font-semibold hover:scale-105 transition-transform shadow-lg"
-            >
-              Get Started
-            </button>
+              <Newsletter />
           </motion.div>
         </section>
-
       </main>
 
       {/* LOGIN MODAL */}

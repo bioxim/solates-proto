@@ -1,5 +1,5 @@
 // src/components/Footer.tsx
-import { Github, MessageCircle, X } from "lucide-react";
+import { Github, X, Gamepad2 } from "lucide-react";
 
 export default function Footer() {
   return (
@@ -42,7 +42,7 @@ export default function Footer() {
             rel="noreferrer"
             className="neon-icon"
           >
-            <MessageCircle className="w-6 h-6 text-[#00eaff]" />
+            <Gamepad2 className="w-6 h-6 text-[#00eaff]" />
           </a>
 
           <a
