@@ -19,35 +19,39 @@ import RightSidebar from "./components/RightSidebar";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import Quests from "./pages/Quests";
+import QuestDetail from "./pages/QuestDetail"; // ✅ NUEVO
 import InviteFriends from "./pages/InviteFriends";
 
-
 export default function App() {
-
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [user, setUser] = useState<any>(null);
-    useEffect(() => {
-      const unsub = onAuthStateChanged(auth, setUser);
-      return () => unsub();
-    }, []);
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, setUser);
+    return () => unsub();
+  }, []);
 
   return (
     <div className="flex flex-col min-h-screen bg-[var(--bg)] text-[var(--text)]">
       <Router>
         <Navbar />
-        {user && <RightSidebar />} {/* ✅ Ahora está dentro del Router */}
+        {user && <RightSidebar />} {/* ✅ Sidebar visible solo si hay login */}
+
         <main className="flex-grow">
           <Routes>
+            {/* Public routes */}
             <Route path="/" element={<Home />} />
             <Route path="/docs" element={<Docs />} />
             <Route path="/airdrop" element={<Airdrop />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
+
             <Route path="/docs/airdrop" element={<DocsLayout />}>
               <Route path="general" element={<General />} />
               <Route path="pointsystem" element={<PointSystem />} />
               <Route path="rewards" element={<Rewards />} />
             </Route>
 
+            {/* Private routes */}
             <Route
               path="/dashboard"
               element={
@@ -73,6 +77,14 @@ export default function App() {
               }
             />
             <Route
+              path="/quest/:id"
+              element={
+                <PrivateRoute>
+                  <QuestDetail />
+                </PrivateRoute>
+              }
+            />
+            <Route
               path="/invite-friends"
               element={
                 <PrivateRoute>
@@ -82,9 +94,9 @@ export default function App() {
             />
           </Routes>
         </main>
+
         <Footer />
       </Router>
     </div>
-
   );
 }
