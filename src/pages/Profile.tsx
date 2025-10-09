@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Upload, X as Twitter, MessageCircle, Gamepad2 as Discord, Mail, Wallet, Trophy, ArrowRightCircle } from "lucide-react";
@@ -192,34 +191,53 @@ export default function Profile() {
             Level {level} — {xp} XP
           </p>
         </motion.div>
-
+        
         {/* Leaderboard */}
         <motion.div className="bg-[var(--card)]/50 p-6 rounded-2xl border border-[var(--card)] backdrop-blur-md shadow-lg">
-          <h2 className="font-semibold text-lg mb-3 flex items-center gap-2">
-            <Trophy className="text-[var(--primary)]" /> Leaderboard
-          </h2>
+          <div className="flex justify-between items-center mb-3">
+            <h2 className="font-semibold text-lg flex items-center gap-2">
+              <Trophy className="text-[var(--primary)]" /> Leaderboard
+            </h2>
+            <button
+              onClick={() => navigate("/leaderboard")}
+              className="text-[var(--primary)] flex items-center gap-1 text-sm hover:underline"
+            >
+              View Full Leaderboard <ArrowRightCircle size={14} />
+            </button>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
             {leaderboard.map((u, i) => (
               <div
                 key={i}
-                className={`flex justify-between p-2 rounded-md ${
+                className={`flex justify-between items-center p-3 rounded-lg border ${
                   u.name === "bioxin.eth"
-                    ? "bg-[var(--primary)]/20 font-semibold text-[var(--primary)]"
-                    : "bg-gray-900/30"
+                    ? "bg-[var(--primary)]/25 border-[var(--primary)] text-white font-semibold shadow-[0_0_10px_var(--primary)]"
+                    : "bg-gray-900/30 border-[var(--card)]"
                 }`}
               >
-                <span>
-                  {i + 1}. {u.name}
+                <span className="flex items-center gap-2">
+                  {i < 3 ? (
+                    <span className="text-yellow-400">🏆</span>
+                  ) : (
+                    <span className="opacity-60">#{i + 1}</span>
+                  )}
+                  {u.name}
                 </span>
-                <span>{u.xp} XP</span>
+                <span className="text-xs sm:text-sm">{u.xp} XP</span>
               </div>
             ))}
           </div>
-          <p className="text-sm opacity-70 mt-3 text-center">
-            Your position: #{userPosition} of {leaderboard.length}
-          </p>
+
+          <div className="mt-4 text-center">
+            <p className="text-sm opacity-80">
+              Your position: <strong>#{userPosition}</strong> of {leaderboard.length}
+            </p>
+            <p className="text-xs opacity-60 mt-1">Keep completing tasks to climb the ranks!</p>
+          </div>
         </motion.div>
 
+        
         {/* Invite Friends */}
         <motion.div className="bg-[var(--card)]/50 p-6 rounded-2xl border border-[var(--card)] backdrop-blur-md shadow-lg text-center">
           <h2 className="font-semibold text-lg mb-3">Invite Friends</h2>

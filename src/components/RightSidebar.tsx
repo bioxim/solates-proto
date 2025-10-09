@@ -12,6 +12,7 @@ import {
   Gift,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import DailyCheckIn from "../components/DailyCheckIn";
 
 export default function RightSidebar() {
   const [open, setOpen] = useState(true);
@@ -61,7 +62,7 @@ export default function RightSidebar() {
           {open && (
             <div className="w-full text-center">
               <p className="text-sm opacity-70">Level</p>
-              <div className="mt-2 bg-gray-700 dark:bg-gray-800 rounded-full h-3 overflow-hidden shadow-inner">
+              <div className="mt-2 bg-gray-700 rounded-full h-3 overflow-hidden shadow-inner">
                 <motion.div
                   initial={{ width: "0%" }}
                   animate={{ width: "40%" }}
@@ -117,6 +118,19 @@ export default function RightSidebar() {
                 </button>
               );
             })}
+
+            {/* 💫 Daily Check-in */}
+            {open && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="w-full"
+              >
+                <DailyCheckIn />
+              </motion.div>
+            )}
+
 
             <button
               onClick={handleLogout}
