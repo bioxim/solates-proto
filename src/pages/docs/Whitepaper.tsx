@@ -1,159 +1,234 @@
 import { motion } from "framer-motion";
+import { useState } from "react";
+import {
+  BookOpen,
+  Layers,
+  Coins,
+  Rocket,
+  Users,
+  Target,
+} from "lucide-react";
 
 export default function Whitepaper() {
-  return (
-    <div className="max-w-5xl mx-auto px-6 py-16 text-gray-200">
-      <motion.h1
-        className="text-4xl font-bold mb-10 bg-gradient-to-r from-[#14F195] to-[#9945FF] bg-clip-text text-transparent"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        Solates Whitepaper
-      </motion.h1>
+  const [activeSection, setActiveSection] = useState<string | null>(null);
 
-      {/* Introduction */}
-      <motion.section
-        className="mb-16"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.2 }}
-      >
-        <h2 className="text-2xl font-semibold mb-4">Overview</h2>
-        <p className="text-gray-400 leading-relaxed">
-          Solates is an educational and gamified ecosystem built on Solana that
-          helps users learn Web3 fundamentals through interactive quests, real
-          progress tracking, and DeFi integrations. The platform combines
-          education, engagement, and incentives — transforming complex blockchain
-          concepts into simple, interactive learning experiences.
-        </p>
-      </motion.section>
+  const sections = [
+    {
+      id: "introduction",
+      title: "Introduction",
+      icon: BookOpen,
+      content: (
+        <>
+          <h3 className="text-xl font-semibold mb-3 text-[#14F195]">
+            Vision & Mission
+          </h3>
+          <p className="opacity-80 mb-4">
+            At <strong>Solates</strong>, our mission is to empower individuals to enter the
+            world of decentralized finance (DeFi) with confidence, clarity, and purpose.
+            We believe that transparency, honesty, and education are the foundations of sustainable growth — both for investors and for the Web3 ecosystem as a whole.
+          </p>
+          <p className="opacity-80 mb-4">
+            <strong>Solates</strong> bridges the gap between learning and earning by offering a gamified
+            environment where users can discover blockchain, DeFi, and investment strategies
+            in a guided and rewarding way.
+          </p>
+          <p className="opacity-80 mb-4">
+            Our vision is to become the most trusted educational hub in the Solana ecosystem — where every user, from beginner to advanced investor, can learn, grow, and design their own investment path.
+          </p>
+          <h3 className="text-xl font-semibold mb-3 text-[#14F195]">
+            The Problem
+          </h3>
+          <p className="opacity-80 mb-4">
+            Most users entering crypto today are overwhelmed.
+          </p>
+          <p className="opacity-80 mb-4">
+            Crypto onboarding is confusing. Information is scattered, risks are high, and
+            newcomers often learn through losses. Solates addresses this by merging
+            education, gamification, and real DeFi tools in one intuitive platform.
+          </p>
 
-      {/* Vision & Goals */}
-      <motion.section
-        className="mb-16"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.3 }}
-      >
-        <h2 className="text-2xl font-semibold mb-4">Vision & Goals</h2>
-        <p className="text-gray-400 leading-relaxed">
-          Our vision is to build the gateway for the next wave of Solana users
-          through education. Solates rewards curiosity — empowering users to
-          explore blockchain principles, master DeFi tools, and understand the
-          value behind decentralization. Every completed quest, every connection,
-          and every point earned represents knowledge gained and potential unlocked.
-        </p>
-      </motion.section>
-
-      {/* The $OLA Token */}
-      <motion.section
-        className="mb-16"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.4 }}
-      >
-        <h2 className="text-2xl font-semibold mb-4">The $OLA Token</h2>
-        <p className="text-gray-400 leading-relaxed mb-3">
-          $OLA is the native token powering the Solates ecosystem. It represents
-          both progress and participation — earned through learning, completing
-          quests, inviting friends, and contributing to the community.
-        </p>
-        <ul className="list-disc list-inside text-gray-400 ml-4 space-y-2">
-          <li><b>Utility:</b> Access premium quests, governance rights, and mining privileges.</li>
-          <li><b>Earned by:</b> Completing educational missions, referrals, and staking activities.</li>
-          <li><b>Redeemable for:</b> Special rewards, limited NFTs, or participation in $OLA mining.</li>
-        </ul>
-      </motion.section>
-
-      {/* User Progression */}
-      <motion.section
-        className="mb-16"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
-      >
-        <h2 className="text-2xl font-semibold mb-4">User Journey</h2>
-        <p className="text-gray-400 leading-relaxed">
-          Each user starts their journey as a <b>Rookie</b> and advances through
-          levels by completing quests, checking in daily, and connecting their wallet.
-          Progression unlocks access to new content and interactive DeFi simulations.
-        </p>
-        <div className="mt-4 border border-gray-700 rounded-xl p-6 bg-[#0a0a0a]/40">
-          <ul className="list-decimal list-inside text-gray-400 space-y-2">
-            <li>Beginner Level – Learn blockchain fundamentals.</li>
-            <li>Intermediate Level – Explore trading, staking, and liquidity pools.</li>
-            <li>Advanced Level – Manage DeFi strategies and governance participation.</li>
+          <h3 className="text-xl font-semibold mb-3 text-[#14F195]">
+            Why Solates
+          </h3>
+          <p>
+            We combine education, gamification, and real DeFi tools in a single intuitive platform — helping users not only understand blockchain, but also apply that knowledge effectively.
+          </p>
+          <p className="opacity-80 mb-4">
+            Every mission, quest, and reward inside Solates is designed to make the learning process engaging and practical.
+          </p>
+          <p className="opacity-80 mb-4">
+            As users complete missions, they gain XP, learn how DeFi works, and unlock real economic opportunities through the native token $OLA.
+          </p>
+          <p className="opacity-80 mb-4">
+            <strong>Solates</strong> doesn’t just teach what DeFi is — it teaches how to use it confidently and safely.
+          </p>
+          <h3 className="text-xl font-semibold mb-3 text-[#14F195]">
+            Guiding Users to Success
+          </h3>
+          <p className="opacity-80 mb-4">
+            What makes <strong>Solates</strong> truly unique is its human-centered approach.
+          </p>
+          <p className="opacity-80 mb-4">
+            We don’t leave users alone in a sea of complexity — we guide them step by step toward success.
+            Through structured missions, interactive dashboards, and community-driven learning, Solates helps each user build personalized strategies that fit their own goals and risk tolerance.
+          </p>
+          <h4 className="font-semibold mb-3 text-[#9ca3af]">
+            Our commitment is simple:
+          </h4>
+          <p className="opacity-80 mb-4">
+            To create a transparent, educational, and rewarding ecosystem where every user can learn, invest, and grow — their way.
+          </p>
+        </>
+      ),
+    },
+    {
+      id: "ecosystem",
+      title: "The Solates Ecosystem",
+      icon: Layers,
+      content: (
+        <>
+          <p className="opacity-80 mb-4">
+            The Solates ecosystem is designed around progression, interaction, and reward.
+            It includes:
+          </p>
+          <ul className="list-disc pl-6 opacity-90 space-y-2">
+            <li>📘 <strong>Quests System:</strong> Learn-to-Earn modules with videos, quizzes, and interactive learning.</li>
+            <li>💼 <strong>Dashboard:</strong> Track XP, wallet balance, DeFi positions, and alerts.</li>
+            <li>👥 <strong>Referral & Social Layer:</strong> Earn by inviting friends who complete quests.</li>
+            <li>🔥 <strong>Daily Engagement:</strong> Check-ins, streaks, and leaderboards that encourage consistency.</li>
           </ul>
-        </div>
-      </motion.section>
+        </>
+      ),
+    },
+    {
+      id: "token",
+      title: "The $OLA Token",
+      icon: Coins,
+      content: (
+        <>
+          <p className="opacity-80 mb-4">
+            $OLA is the native utility token of Solates, powering every interaction in the
+            ecosystem. It represents both reward and governance.
+          </p>
+          <ul className="list-disc pl-6 opacity-90 space-y-2">
+            <li>🎯 Reward for completing quests and leveling up.</li>
+            <li>🔒 Access to exclusive features like the Mining Hall.</li>
+            <li>💬 Governance and future DAO participation.</li>
+            <li>🧠 Staking, liquidity, and future DeFi integrations.</li>
+          </ul>
+        </>
+      ),
+    },
+    {
+      id: "airdrop",
+      title: "Airdrop & Incentives",
+      icon: Rocket,
+      content: (
+        <>
+          <p className="opacity-80 mb-4">
+            Early contributors and learners can participate in the Solates Airdrop Program.
+          </p>
+          <ul className="list-disc pl-6 opacity-90 space-y-2">
+            <li>🏆 Earn XP and complete quests to qualify.</li>
+            <li>👥 Get extra points for verified referrals.</li>
+            <li>💰 Unlock higher tiers for bigger airdrop rewards.</li>
+          </ul>
+        </>
+      ),
+    },
+    {
+      id: "tokenomics",
+      title: "Tokenomics",
+      icon: Target,
+      content: (
+        <>
+          <p className="opacity-80 mb-4">
+            Solates maintains a balanced and sustainable token model for long-term growth.
+          </p>
+          <ul className="list-disc pl-6 opacity-90 space-y-2">
+            <li>💎 Total Supply: 100,000,000 $OLA</li>
+            <li>🌍 Community & Airdrops: 40%</li>
+            <li>🔬 Development & Team: 25%</li>
+            <li>🤝 Partnerships & Treasury: 20%</li>
+            <li>🔥 Reserve & Staking Rewards: 15%</li>
+          </ul>
+        </>
+      ),
+    },
+    {
+      id: "team",
+      title: "Vision Beyond",
+      icon: Users,
+      content: (
+        <>
+          <p className="opacity-80 mb-4">
+            Solates is more than a platform — it’s a movement. Founded with the belief that
+            knowledge and transparency create trust, Solates empowers every user to take
+            control of their financial journey.
+          </p>
+          <p className="opacity-80">
+            We invite builders, creators, and learners to join us in shaping the next wave of
+            decentralized education and finance.
+          </p>
+        </>
+      ),
+    },
+  ];
 
-      {/* Governance */}
-      <motion.section
-        className="mb-16"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.6 }}
+  return (
+    <div className="max-w-6xl mx-auto px-6 py-12 text-gray-100">
+      {/* Hero Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="text-center mb-10"
       >
-        <h2 className="text-2xl font-semibold mb-4">Governance & DAO</h2>
-        <p className="text-gray-400 leading-relaxed">
-          Future versions of Solates will evolve into a DAO structure, giving
-          token holders the ability to vote on platform upgrades, reward mechanisms,
-          and educational content. The community drives the evolution of the ecosystem,
-          ensuring transparency and fairness in every decision.
+        <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-[#14F195] to-[#9945FF] text-transparent bg-clip-text">
+          Solates Whitepaper
+        </h1>
+        <p className="text-gray-400 max-w-2xl mx-auto">
+          Explore the foundations, vision, and economic design of Solates — the gamified
+          learning ecosystem built on Solana.
         </p>
-      </motion.section>
+      </motion.div>
 
-      {/* Technical Architecture */}
-      <motion.section
-        className="mb-16"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.7 }}
-      >
-        <h2 className="text-2xl font-semibold mb-4">Technical Architecture</h2>
-        <p className="text-gray-400 leading-relaxed">
-          Solates is built on Solana to take advantage of its scalability,
-          security, and low transaction costs. The application integrates Firebase
-          for user management, and will progressively transition to decentralized
-          identity verification and wallet-based authentication.
-        </p>
-      </motion.section>
+      {/* Navigation Cards */}
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+        {sections.map(({ id, title, icon: Icon }) => (
+          <motion.button
+            key={id}
+            whileHover={{ scale: 1.03 }}
+            onClick={() =>
+              setActiveSection(activeSection === id ? null : id)
+            }
+            className={`p-6 text-left rounded-xl border border-gray-800/50 transition-all backdrop-blur-md bg-[#0b0b0b]/40 hover:border-[#14F195]/40 ${
+              activeSection === id
+                ? "shadow-[0_0_15px_#14F19540] border-[#14F195]/60"
+                : ""
+            }`}
+          >
+            <Icon className="text-[#14F195] mb-3" size={26} />
+            <h3 className="font-semibold text-lg mb-1">{title}</h3>
+            <p className="text-sm text-gray-400">
+              Click to view content
+            </p>
+          </motion.button>
+        ))}
+      </div>
 
-      {/* Roadmap */}
-      <motion.section
-        className="mb-16"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.8 }}
-      >
-        <h2 className="text-2xl font-semibold mb-4">Roadmap</h2>
-        <ul className="list-disc list-inside text-gray-400 ml-4 space-y-2">
-          <li><b>Q4 2025:</b> Platform MVP launch and quest system beta.</li>
-          <li><b>Q1 2026:</b> $OLA token integration and mining hall release.</li>
-          <li><b>Q2 2026:</b> DAO activation and user-driven content expansion.</li>
-          <li><b>Q3 2026:</b> Full ecosystem deployment with DeFi integrations.</li>
-        </ul>
-      </motion.section>
-
-      {/* Call to Action */}
-      <motion.section
-        className="text-center py-12 border-t border-gray-800"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.9 }}
-      >
-        <h3 className="text-2xl font-semibold mb-3">Join the Solates Revolution</h3>
-        <p className="text-gray-400 mb-6">
-          Learn. Earn. Grow. Together we build the new decentralized future.
-        </p>
-        <a
-          href="/dashboard"
-          className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#14F195] to-[#9945FF] text-white font-semibold hover:opacity-90 transition-all"
+      {/* Expanded Section */}
+      {activeSection && (
+        <motion.div
+          key={activeSection}
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="p-8 rounded-2xl border border-gray-800/50 bg-[#0b0b0b]/60 backdrop-blur-md shadow-lg"
         >
-          Start Your Journey
-        </a>
-      </motion.section>
+          {sections.find((s) => s.id === activeSection)?.content}
+        </motion.div>
+      )}
     </div>
   );
 }
