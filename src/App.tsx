@@ -2,24 +2,35 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { auth } from "./firebase";
 import { useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
+
+// Layouts
+import DocsLayout from "./pages/docs/DocsLayout";
+
+// Components
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
+import RightSidebar from "./components/RightSidebar";
+import PrivateRoute from "./components/PrivateRoute";
+
+// Public pages
 import Home from "./pages/Home";
-// Documents
 import Docs from "./pages/Docs";
 import Airdrop from "./pages/Airdrop";
 import Leaderboard from "./pages/Leaderboard";
-import DocsLayout from "./pages/docs/DocsLayout";
+
+// Docs pages
+import Whitepaper from "./pages/docs/Whitepaper";
+import Tokenomics from "./pages/docs/Tokenomics";
+import Roadmap from "./pages/docs/Roadmap";
 import General from "./pages/docs/airdrop/General";
 import PointSystem from "./pages/docs/airdrop/PointSystem";
 import Rewards from "./pages/docs/airdrop/Rewards";
-// Users w/login
-import PrivateRoute from "./components/PrivateRoute";
-import RightSidebar from "./components/RightSidebar";
+
+// Private pages
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import Quests from "./pages/Quests";
-import QuestDetail from "./pages/QuestDetail"; // ✅ NUEVO
+import QuestDetail from "./pages/QuestDetail";
 import InviteFriends from "./pages/InviteFriends";
 
 export default function App() {
@@ -35,23 +46,27 @@ export default function App() {
     <div className="flex flex-col min-h-screen bg-[var(--bg)] text-[var(--text)]">
       <Router>
         <Navbar />
-        {user && <RightSidebar />} {/* ✅ Sidebar visible solo si hay login */}
+        {user && <RightSidebar />}
 
         <main className="flex-grow">
           <Routes>
-            {/* Public routes */}
+            {/* 🌍 Public routes */}
             <Route path="/" element={<Home />} />
             <Route path="/docs" element={<Docs />} />
             <Route path="/airdrop" element={<Airdrop />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
 
-            <Route path="/docs/airdrop" element={<DocsLayout />}>
-              <Route path="general" element={<General />} />
-              <Route path="pointsystem" element={<PointSystem />} />
-              <Route path="rewards" element={<Rewards />} />
+            {/* 📘 Documentation routes */}
+            <Route path="/docs" element={<DocsLayout />}>
+              <Route path="whitepaper" element={<Whitepaper />} />
+              <Route path="tokenomics" element={<Tokenomics />} />
+              <Route path="roadmap" element={<Roadmap />} />
+              <Route path="airdrop/general" element={<General />} />
+              <Route path="airdrop/pointsystem" element={<PointSystem />} />
+              <Route path="airdrop/rewards" element={<Rewards />} />
             </Route>
 
-            {/* Private routes */}
+            {/* 🔒 Private routes */}
             <Route
               path="/dashboard"
               element={
