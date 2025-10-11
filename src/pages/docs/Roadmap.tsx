@@ -21,9 +21,10 @@ export default function Roadmap() {
       >
         <h2 className="text-2xl font-semibold mb-4">Vision</h2>
         <p className="text-gray-400 leading-relaxed">
-          The Solates roadmap outlines our strategic phases — from building the
-          educational foundation to deploying a full Web3 learning economy on Solana.
-          Each milestone strengthens the bridge between blockchain education and real participation.
+          The Solates roadmap outlines our strategic evolution — from an educational foundation
+          to a full Web3 learning and earning ecosystem on Solana.  
+          Each milestone represents a step forward in empowering users through decentralized knowledge, 
+          transparency, and real DeFi tools.
         </p>
       </motion.section>
 
@@ -35,37 +36,54 @@ export default function Roadmap() {
         transition={{ delay: 0.3 }}
       >
         <div>
-          <h3 className="text-xl font-semibold text-[#14F195] mb-2">Q4 2025 – MVP & Quests Launch</h3>
+          <h3 className="text-xl font-semibold text-[#14F195] mb-2">
+            Q4 2025 – MVP & Quests Launch
+          </h3>
           <p className="text-gray-400">
-            Launch of Solates MVP, onboarding system, and first quest modules for beginner users.
+            Launch of the first MVP version featuring user onboarding, quest-based learning,
+            and the first interactive dashboard.  
+            This phase focuses on education, accessibility, and early community building.
           </p>
         </div>
 
         <div>
-          <h3 className="text-xl font-semibold text-[#14F195] mb-2">Q1 2026 – $OLA Token & Mining Hall</h3>
+          <h3 className="text-xl font-semibold text-[#14F195] mb-2">
+            Q1 2026 – $OLA Token & Mining Hall
+          </h3>
           <p className="text-gray-400">
-            Introduction of $OLA token and Mining Hall access for users reaching milestone XP.
+            Introduction of the $OLA token — the utility and reward engine of the Solates ecosystem.  
+            Users reaching key XP milestones will unlock access to the Mining Hall and early staking programs.
           </p>
         </div>
 
         <div>
-          <h3 className="text-xl font-semibold text-[#14F195] mb-2">Q2 2026 – DAO & Governance Layer</h3>
+          <h3 className="text-xl font-semibold text-[#14F195] mb-2">
+            Q2 2026 – DAO & Governance Layer
+          </h3>
           <p className="text-gray-400">
-            Establishment of a governance structure where users can vote on new features and quests.
+            The transition to community-driven decision-making begins.  
+            Through governance and proposals, users will shape new features, missions, and reward models.
           </p>
         </div>
 
         <div>
-          <h3 className="text-xl font-semibold text-[#14F195] mb-2">Q3 2026 – Solates DeFi Hub</h3>
+          <h3 className="text-xl font-semibold text-[#14F195] mb-2">
+            Q3 2026 – Solates DeFi Hub
+          </h3>
           <p className="text-gray-400">
-            Integration of Solana-based DeFi dashboards, portfolio tracking, and educational yield strategies.
+            Expansion into advanced DeFi tools: integrated portfolio tracking, on-chain alerts, and yield dashboards.  
+            Solates becomes the all-in-one hub for decentralized education and real asset management.
           </p>
         </div>
 
         <div>
-          <h3 className="text-xl font-semibold text-[#14F195] mb-2">Q4 2026 – Global Expansion</h3>
+          <h3 className="text-xl font-semibold text-[#14F195] mb-2">
+            Q4 2026 – Global Expansion & Partnerships
+          </h3>
           <p className="text-gray-400">
-            Partnerships with educational institutions and DeFi protocols to expand Solates worldwide.
+            Scaling the platform globally through collaborations with educational institutions, 
+            DeFi protocols, and ecosystem partners.  
+            Solates establishes itself as a universal gateway for Web3 learning and financial empowerment.
           </p>
         </div>
       </motion.section>
@@ -77,9 +95,12 @@ export default function Roadmap() {
         animate={{ opacity: 1 }}
         transition={{ delay: 0.6 }}
       >
-        <h3 className="text-2xl font-semibold mb-3">The Future of Learning is On-Chain</h3>
+        <h3 className="text-2xl font-semibold mb-3">
+          The Future of Learning is On-Chain
+        </h3>
         <p className="text-gray-400 mb-6">
-          Solates continues to evolve — powered by the community, built on Solana.
+          Solates continues to evolve — powered by the community, built on Solana,
+          and guided by transparency, knowledge, and collaboration.
         </p>
         <a
           href="/docs/whitepaper"
