@@ -1,5 +1,4 @@
-// src/components/Footer.tsx
-import { Github, X, Gamepad2 } from "lucide-react";
+import { Github, X, Gamepad2, FileText } from "lucide-react";
 
 export default function Footer() {
   return (
@@ -61,6 +60,20 @@ export default function Footer() {
             className="neon-icon"
           >
             <Github className="w-6 h-6 text-[#ff4ffb]" />
+          </a>
+
+          {/* Línea divisoria sutil */}
+          <div className="h-6 w-px bg-gray-600/40 mx-2"></div>
+
+          {/* Enlace al PDF */}
+          <a
+            href="/Solates_Technical_Documentation_v1.0.pdf"
+            target="_blank"
+            rel="noreferrer"
+            className="neon-icon"
+            title="View Technical Documentation"
+          >
+            <FileText className="w-6 h-6 text-[#00eaff]" />
           </a>
         </div>
       </div>
