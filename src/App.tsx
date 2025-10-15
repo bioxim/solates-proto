@@ -1,5 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { auth } from "./firebase";
+import { 
+        auth, 
+        createUserProfile, 
+      } from "./firebase";
 import { useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 
@@ -40,7 +43,10 @@ export default function App() {
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, setUser);
+    const unsub = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+      if (user) createUserProfile(user); 
+    });
     return () => unsub();
   }, []);
 

@@ -15,6 +15,9 @@ import {
   getDocs,
   query,
   where,
+  doc,
+  getDoc,
+  setDoc,
   serverTimestamp,
 } from "firebase/firestore";
 
@@ -35,6 +38,7 @@ export const analytics = getAnalytics(app);
 export const db = getFirestore(app);
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
+
 
 // --- Newsletter ---
 export async function subscribeToNewsletter(email: string) {
@@ -64,6 +68,7 @@ export async function subscribeToNewsletter(email: string) {
   }
 }
 
+
 // --- Registro temporal + verificación ---
 export async function registerAndSendVerification(email: string) {
   try {
@@ -77,7 +82,7 @@ export async function registerAndSendVerification(email: string) {
     await sendEmailVerification(userCredential.user);
     console.log("Verification email sent to:", email);
     return true;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     if (error.code === "auth/email-already-in-use") {
       console.warn("User already registered:", email);
@@ -87,6 +92,7 @@ export async function registerAndSendVerification(email: string) {
     throw new Error(error.message);
   }
 }
+
 
 // --- Listener de verificados ---
 export function listenForEmailVerification() {
@@ -101,4 +107,30 @@ export function listenForEmailVerification() {
       }
     }
   });
+}
+
+
+// --- ✅ NUEVO: Crear perfil de usuario al loguearse ---
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function createUserProfile(user: any) {
+  if (!user?.uid) return;
+
+  const userRef = doc(db, "users", user.uid);
+  const snapshot = await getDoc(userRef);
+
+  if (!snapshot.exists()) {
+    await setDoc(userRef, {
+      uid: user.uid,
+      email: user.email || "",
+      displayName: user.displayName || "",
+      avatarUrl: user.photoURL || "",
+      xp: 0,
+      level: 1,
+      role: "student",
+      joinedAt: serverTimestamp(),
+    });
+    console.log("User profile created:", user.email);
+  } else {
+    console.log("User profile already exists:", user.email);
+  }
 }
