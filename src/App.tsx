@@ -32,6 +32,8 @@ import Profile from "./pages/Profile";
 import Quests from "./pages/Quests";
 import QuestDetail from "./pages/QuestDetail";
 import InviteFriends from "./pages/InviteFriends";
+import Admin from "./pages/Admin";
+
 
 export default function App() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -107,6 +109,15 @@ export default function App() {
                 </PrivateRoute>
               }
             />
+            <Route
+              path="/admin"
+              element={
+                <PrivateRoute>
+                  <Admin />
+                </PrivateRoute>
+              }
+            />
+
           </Routes>
         </main>
 

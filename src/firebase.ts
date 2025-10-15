@@ -12,10 +12,13 @@ import {
   getFirestore,
   collection,
   addDoc,
+  getDocs,
+  query,
+  where,
   serverTimestamp,
 } from "firebase/firestore";
 
-// --- Configuración del proyecto Firebase ---
+// Configuración de Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyD8E9BpGcCvlM7nDlwIpUAka2XY8tHqpd4",
   authDomain: "solates.firebaseapp.com",
@@ -26,29 +29,33 @@ const firebaseConfig = {
   measurementId: "G-7DS4SMR49Z",
 };
 
-// --- Inicialización de Firebase ---
+// Inicialización
 const app = initializeApp(firebaseConfig);
-
-// --- Analytics ---
 export const analytics = getAnalytics(app);
-
-// --- Auth ---
+export const db = getFirestore(app);
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 
-// --- Firestore ---
-export const db = getFirestore(app);
-
-// --- Guarda el email en Firestore ---
+// --- Newsletter ---
 export async function subscribeToNewsletter(email: string) {
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   if (!emailRegex.test(email)) throw new Error("Invalid email format.");
 
   try {
+    const q = query(collection(db, "newsletter"), where("email", "==", email));
+    const snapshot = await getDocs(q);
+
+    if (!snapshot.empty) {
+      console.log("Email already subscribed:", email);
+      return snapshot.docs[0].id; // devuelve id existente
+    }
+
     const docRef = await addDoc(collection(db, "newsletter"), {
       email,
       createdAt: serverTimestamp(),
+      verified: false, // opcional
     });
+
     console.log("Email saved in Firestore:", docRef.id);
     return docRef.id;
   } catch (err) {
@@ -57,7 +64,7 @@ export async function subscribeToNewsletter(email: string) {
   }
 }
 
-// --- Crea usuario temporal y envía verificación por correo ---
+// --- Registro temporal + verificación ---
 export async function registerAndSendVerification(email: string) {
   try {
     const randomPassword = Math.random().toString(36).slice(-10);
@@ -70,14 +77,18 @@ export async function registerAndSendVerification(email: string) {
     await sendEmailVerification(userCredential.user);
     console.log("Verification email sent to:", email);
     return true;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
+    if (error.code === "auth/email-already-in-use") {
+      console.warn("User already registered:", email);
+      return true; // No lanzar error si ya existe
+    }
     console.error("Error during registration:", error.message);
     throw new Error(error.message);
   }
 }
 
-// --- Escucha usuarios verificados y los guarda en Firestore ---
+// --- Listener de verificados ---
 export function listenForEmailVerification() {
   onAuthStateChanged(auth, async (user) => {
     if (user && user.email && user.emailVerified) {

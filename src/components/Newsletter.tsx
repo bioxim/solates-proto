@@ -2,20 +2,16 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Mail } from "lucide-react";
-import { registerAndSendVerification, listenForEmailVerification } from "../firebase";
+import { subscribeToNewsletter } from "../firebase";
 
 export default function Newsletter() {
   const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<
-    "idle" | "loading" | "success" | "error"
-  >("idle");
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
     const savedEmail = localStorage.getItem("solates_email");
     if (savedEmail) setStatus("success");
-    // Iniciar el listener
-    listenForEmailVerification();
   }, []);
 
   const validateEmail = (value: string) =>
@@ -32,13 +28,14 @@ export default function Newsletter() {
     setErrorMsg("");
 
     try {
-      await registerAndSendVerification(email);
+      await subscribeToNewsletter(email);
       localStorage.setItem("solates_email", email);
       setStatus("success");
       setEmail("");
-    } catch (err) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
       console.error("Error subscribing:", err);
-      setErrorMsg("Could not send verification email. Please try again.");
+      setErrorMsg(err.message || "Could not subscribe. Please try again.");
       setStatus("error");
     }
   };
@@ -56,9 +53,9 @@ export default function Newsletter() {
 
         {status === "success" ? (
           <p className="text-[var(--primary)] font-semibold">
-            A verification email was sent to your inbox. 📩
+            Your email has been subscribed. 📩
             <br />
-            Please confirm it to complete your subscription.
+            Please check your inbox if using a verification system.
           </p>
         ) : (
           <>

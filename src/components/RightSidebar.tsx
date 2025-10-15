@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { auth } from "../firebase";
-import { signOut } from "firebase/auth";
+import { signOut, onAuthStateChanged } from "firebase/auth";
 import {
   ChevronLeft,
   ChevronRight,
@@ -10,6 +10,7 @@ import {
   Target,
   Home,
   Gift,
+  ShieldCheck
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import DailyCheckIn from "../components/DailyCheckIn";
@@ -18,6 +19,16 @@ export default function RightSidebar() {
   const [open, setOpen] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+
+  const ADMIN_EMAIL = "mariaximenacamino@gmail.com";
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (user) => {
+      setUserEmail(user?.email || null);
+    });
+    return () => unsub();
+  }, []);
 
   const handleLogout = async () => {
     await signOut(auth);
@@ -119,6 +130,26 @@ export default function RightSidebar() {
               );
             })}
 
+            {/* Admin Panel — solo visible para vos */}
+            {userEmail === ADMIN_EMAIL && (
+              <button
+                onClick={() => navigate("/admin")}
+                className={`group flex items-center gap-3 w-full rounded-lg py-2 px-2 transition-all duration-200 cursor-pointer border-t border-[var(--card)] pt-4 mt-4
+                  ${
+                    open
+                      ? "hover:bg-[var(--primary)]/10"
+                      : "hover:bg-[var(--primary)]/20"
+                  }`}
+              >
+                <ShieldCheck size={20} className="text-[var(--primary)]" />
+                {open && (
+                  <span className="text-sm font-medium text-[var(--primary)]">
+                    Admin Panel
+                  </span>
+                )}
+              </button>
+            )}
+
             {/* 💫 Daily Check-in */}
             {open && (
               <motion.div
@@ -131,7 +162,7 @@ export default function RightSidebar() {
               </motion.div>
             )}
 
-
+            {/* 🔴 Logout */}
             <button
               onClick={handleLogout}
               className={`group flex items-center gap-3 w-full text-red-400 hover:text-red-500 transition py-2 px-2 rounded-lg ${
