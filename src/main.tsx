@@ -2,6 +2,7 @@
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
+import { SolanaWalletContext } from "./context/SolanaWalletContext";
 
 /**
  * Set theme BEFORE React mounts to avoid FOUC.
@@ -14,7 +15,6 @@ import "./index.css";
     } else if (saved === "dark") {
       document.documentElement.classList.add("dark");
     } else {
-      // si no hay preferencia guardada, usar preferencia del sistema
       if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
         document.documentElement.classList.add("dark");
       } else {
@@ -22,9 +22,12 @@ import "./index.css";
       }
     }
   } catch (err) {
-    // si algo falla, no cortamos la app
     console.warn("Theme init error:", err);
   }
 })();
 
-createRoot(document.getElementById("root")!).render(<App />);
+createRoot(document.getElementById("root")!).render(
+  <SolanaWalletContext>
+    <App />
+  </SolanaWalletContext>
+);

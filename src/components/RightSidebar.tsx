@@ -1,7 +1,9 @@
+// src/components/RightSidebar.tsx
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { auth } from "../firebase";
+import { auth, db } from "../firebase";
 import { signOut, onAuthStateChanged } from "firebase/auth";
+import { doc, onSnapshot } from "firebase/firestore";
 import {
   ChevronLeft,
   ChevronRight,
@@ -10,7 +12,7 @@ import {
   Target,
   Home,
   Gift,
-  ShieldCheck
+  ShieldCheck,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import DailyCheckIn from "../components/DailyCheckIn";
@@ -20,15 +22,47 @@ export default function RightSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [xp, setXp] = useState(0);
+  const [level, setLevel] = useState(1);
+  const [rank, setRank] = useState<string>("Explorer");
 
   const ADMIN_EMAIL = "mariaximenacamino@gmail.com";
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (user) => {
-      setUserEmail(user?.email || null);
-    });
-    return () => unsub();
-  }, []);
+  const unsub = onAuthStateChanged(auth, (user) => {
+    if (user) {
+      setUserEmail(user.email || null);
+      const userRef = doc(db, "users", user.uid);
+
+      // 🔥 Escucha en tiempo real los cambios de XP / Level
+      const unsubscribeSnapshot = onSnapshot(userRef, (snap) => {
+        if (snap.exists()) {
+          const data = snap.data();
+          setXp(data.xp || 0);
+          setLevel(data.level || 1);
+        }
+      });
+
+      return () => unsubscribeSnapshot();
+    } else {
+      setUserEmail(null);
+      setXp(0);
+      setLevel(1);
+    }
+  });
+  return () => unsub();
+}, []);
+
+
+  // 🧮 Calcular porcentaje y rango
+  const progress = xp % 100;
+  useEffect(() => {
+    if (xp < 500) setRank("Explorer");
+    else if (xp < 1000) setRank("Trader");
+    else if (xp < 1500) setRank("DeFi Learner");
+    else if (xp < 2000) setRank("Innovator");
+    else setRank("💎 Diamond Pioneer");
+  }, [xp]);
 
   const handleLogout = async () => {
     await signOut(auth);
@@ -72,16 +106,16 @@ export default function RightSidebar() {
         >
           {open && (
             <div className="w-full text-center">
-              <p className="text-sm opacity-70">Level</p>
+              <p className="text-sm opacity-70">Level {level}</p>
               <div className="mt-2 bg-gray-700 rounded-full h-3 overflow-hidden shadow-inner">
                 <motion.div
                   initial={{ width: "0%" }}
-                  animate={{ width: "40%" }}
+                  animate={{ width: `${progress}%` }}
                   transition={{ duration: 1 }}
-                  className="bg-[var(--primary)] h-full rounded-full"
+                  className="bg-gradient-to-r from-[#b14eff] to-[#00eaff] h-full rounded-full"
                 />
               </div>
-              <p className="text-xs mt-1 opacity-60">41 XP • Bronze</p>
+              <p className="text-xs mt-1 opacity-70">{xp} XP • {rank}</p>
             </div>
           )}
 

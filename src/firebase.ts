@@ -18,6 +18,7 @@ import {
   doc,
   getDoc,
   setDoc,
+  updateDoc,
   serverTimestamp,
 } from "firebase/firestore";
 
@@ -132,5 +133,26 @@ export async function createUserProfile(user: any) {
     console.log("User profile created:", user.email);
   } else {
     console.log("User profile already exists:", user.email);
+  }
+}
+
+// ✅ Actualiza XP, tareas o cualquier campo del perfil
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function updateUserProfile(uid: string, data: Record<string, any>) {
+  if (!uid) {
+    console.warn("updateUserProfile: missing uid");
+    return;
+  }
+
+  const userRef = doc(db, "users", uid);
+
+  try {
+    await updateDoc(userRef, {
+      ...data,
+      updatedAt: serverTimestamp(),
+    });
+    console.log("User profile updated:", data);
+  } catch (err) {
+    console.error("Error updating user profile:", err);
   }
 }

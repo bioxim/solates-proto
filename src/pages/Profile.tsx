@@ -1,11 +1,28 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Upload, X as Twitter, MessageCircle, Gamepad2 as Discord, Mail, Wallet, Trophy, ArrowRightCircle } from "lucide-react";
+import {
+  Upload,
+  X as Twitter,
+  MessageCircle,
+  Gamepad2 as Discord,
+  Mail,
+  Wallet,
+  Trophy,
+  ArrowRightCircle,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import { auth } from "../firebase";
+import { onAuthStateChanged } from "firebase/auth";
+import { updateUserProfile } from "../firebase";
 
 export default function Profile() {
   const navigate = useNavigate();
+  const { connected, publicKey } = useWallet();
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [user, setUser] = useState<any>(null);
   const [xp, setXp] = useState(0);
   const [level, setLevel] = useState(1);
   const [tasks, setTasks] = useState({
@@ -15,10 +32,18 @@ export default function Profile() {
     wallet: false,
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [userPosition, setUserPosition] = useState<number>(0);
 
+  // --- Detectar usuario autenticado ---
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (u) => setUser(u));
+    return () => unsub();
+  }, []);
+
+  // --- Cargar progreso local ---
   useEffect(() => {
     const saved = localStorage.getItem("solates_profile_progress");
     if (saved) {
@@ -27,8 +52,10 @@ export default function Profile() {
       setLevel(parsed.level || 1);
       setTasks(parsed.tasks || tasks);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // --- Guardar progreso en localStorage ---
   useEffect(() => {
     localStorage.setItem(
       "solates_profile_progress",
@@ -36,8 +63,8 @@ export default function Profile() {
     );
   }, [xp, level, tasks]);
 
+  // --- Leaderboard mock ---
   useEffect(() => {
-    // Mock leaderboard data
     const mock = Array.from({ length: 20 }).map((_, i) => ({
       name: `User${i + 1}`,
       xp: Math.floor(Math.random() * 900 + 100),
@@ -48,6 +75,7 @@ export default function Profile() {
     setUserPosition(fullBoard.findIndex((u) => u.name === "bioxin.eth") + 1);
   }, [xp]);
 
+  // --- Manejar tareas completadas ---
   const handleComplete = (type: string, sub?: string) => {
     setXp((prev) => prev + 10);
     if (type === "avatar") setTasks((t) => ({ ...t, avatar: true }));
@@ -60,11 +88,38 @@ export default function Profile() {
       }));
   };
 
+  // --- Escucha conexión de wallet ---
+  useEffect(() => {
+  if (connected && publicKey) {
+    const alreadyConnected = localStorage.getItem("walletConnectedOnce");
+
+    // 🚫 Evita sumar XP si ya se registró antes
+    if (!tasks.wallet && !alreadyConnected) {
+      handleComplete("wallet");
+      localStorage.setItem("walletConnectedOnce", "true");
+      console.log("Wallet connected for the first time:", publicKey.toBase58());
+    } else {
+      console.log("Wallet already registered, no XP added:", publicKey.toBase58());
+    }
+  }
+// eslint-disable-next-line react-hooks/exhaustive-deps
+}, [connected, publicKey]);
+
+
+
+  // --- Calcular nivel ---
   useEffect(() => {
     setLevel(1 + Math.floor(xp / 100));
   }, [xp]);
 
-  const getProgress = () => (xp % 100);
+  // --- Guardar XP y nivel en Firestore ---
+  useEffect(() => {
+    if (user?.uid) {
+      updateUserProfile(user.uid, { xp, level });
+    }
+  }, [xp, level, user]);
+
+  const getProgress = () => xp % 100;
 
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--text)] p-6 flex flex-col items-center">
@@ -97,7 +152,9 @@ export default function Profile() {
               Upload
             </button>
           ) : (
-            <p className="text-[var(--primary)] font-semibold">✅ +10 points earned!</p>
+            <p className="text-[var(--primary)] font-semibold">
+              ✅ +10 points earned!
+            </p>
           )}
         </motion.div>
 
@@ -144,24 +201,25 @@ export default function Profile() {
               Verify Email
             </button>
           ) : (
-            <p className="text-[var(--primary)] font-semibold">✅ Verified (+10 points)</p>
+            <p className="text-[var(--primary)] font-semibold">
+              ✅ Verified (+10 points)
+            </p>
           )}
         </motion.div>
 
-        {/* Add a Wallet */}
+        {/* Add a Wallet (REAL CONNECTION) */}
         <motion.div className="bg-[var(--card)]/50 p-6 rounded-2xl border border-[var(--card)] backdrop-blur-md shadow-lg text-center">
           <h2 className="font-semibold text-lg mb-3 flex justify-center items-center gap-2">
             <Wallet className="text-[var(--primary)]" /> Add a Wallet
           </h2>
-          {!tasks.wallet ? (
-            <button
-              onClick={() => handleComplete("wallet")}
-              className="px-5 py-2 bg-[var(--primary)] text-white rounded-lg font-semibold hover:opacity-90 transition"
-            >
-              Connect Wallet
-            </button>
+
+          {!connected ? (
+            <WalletMultiButton className="!bg-[var(--primary)] !text-white !rounded-lg !font-semibold hover:opacity-90 transition !px-5 !py-2" />
           ) : (
-            <p className="text-[var(--primary)] font-semibold">✅ Wallet Connected (+10 points)</p>
+            <p className="text-[var(--primary)] font-semibold">
+              ✅ Wallet Connected ({publicKey?.toBase58().slice(0, 4)}...
+              {publicKey?.toBase58().slice(-4)}) +10 XP
+            </p>
           )}
         </motion.div>
 
@@ -190,67 +248,6 @@ export default function Profile() {
           <p className="text-sm opacity-80 mt-2 text-center">
             Level {level} — {xp} XP
           </p>
-        </motion.div>
-        
-        {/* Leaderboard */}
-        <motion.div className="bg-[var(--card)]/50 p-6 rounded-2xl border border-[var(--card)] backdrop-blur-md shadow-lg">
-          <div className="flex justify-between items-center mb-3">
-            <h2 className="font-semibold text-lg flex items-center gap-2">
-              <Trophy className="text-[var(--primary)]" /> Leaderboard
-            </h2>
-            <button
-              onClick={() => navigate("/leaderboard")}
-              className="text-[var(--primary)] flex items-center gap-1 text-sm hover:underline"
-            >
-              View Full Leaderboard <ArrowRightCircle size={14} />
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
-            {leaderboard.map((u, i) => (
-              <div
-                key={i}
-                className={`flex justify-between items-center p-3 rounded-lg border ${
-                  u.name === "bioxin.eth"
-                    ? "bg-[var(--primary)]/25 border-[var(--primary)] text-white font-semibold shadow-[0_0_10px_var(--primary)]"
-                    : "bg-gray-900/30 border-[var(--card)]"
-                }`}
-              >
-                <span className="flex items-center gap-2">
-                  {i < 3 ? (
-                    <span className="text-yellow-400">🏆</span>
-                  ) : (
-                    <span className="opacity-60">#{i + 1}</span>
-                  )}
-                  {u.name}
-                </span>
-                <span className="text-xs sm:text-sm">{u.xp} XP</span>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-4 text-center">
-            <p className="text-sm opacity-80">
-              Your position: <strong>#{userPosition}</strong> of {leaderboard.length}
-            </p>
-            <p className="text-xs opacity-60 mt-1">Keep completing tasks to climb the ranks!</p>
-          </div>
-        </motion.div>
-
-        
-        {/* Invite Friends */}
-        <motion.div className="bg-[var(--card)]/50 p-6 rounded-2xl border border-[var(--card)] backdrop-blur-md shadow-lg text-center">
-          <h2 className="font-semibold text-lg mb-3">Invite Friends</h2>
-          <p className="text-sm opacity-80 mb-4">
-            Share your referral link and earn <strong>+100 points</strong> for
-            each friend who completes their profile and 5 quests.
-          </p>
-          <button
-            onClick={() => navigate("/invite-friends")}
-            className="px-5 py-2 bg-[var(--primary)] text-white rounded-lg font-semibold hover:opacity-90 transition"
-          >
-            Go to Invite Friends
-          </button>
         </motion.div>
       </motion.div>
     </div>
