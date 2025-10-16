@@ -241,6 +241,7 @@ export default function Profile() {
         <AvatarUpload
           completed={tasks.avatar}
           onComplete={() => handleComplete("avatar")}
+          user={user}
         />
         
         <SocialConnect 
