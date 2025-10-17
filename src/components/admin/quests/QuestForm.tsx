@@ -1,7 +1,7 @@
 // src/components/admin/QuestForm.tsx
 import { useState, useEffect } from "react";
-import { type Quest } from "../../../data/questsData";
 import QuestionsInput from "./QuestionsInput";
+import type { Quest, Question } from "../../../types/Quest";
 
 interface Props {
   quest: Quest | null;
@@ -16,12 +16,25 @@ export default function QuestForm({ quest, onSave }: Props) {
     stage: "initial",
     type: "text",
     reward: 10,
+    contentUrl: "",
+    imageUrl: "",
     questions: [],
   });
 
   useEffect(() => {
-    if (quest) setForm(quest);
-    else
+    if (quest) {
+      setForm({
+        id: quest.id ?? "",
+        title: quest.title ?? "",
+        description: quest.description ?? "",
+        stage: quest.stage ?? "initial",
+        type: quest.type ?? "text",
+        reward: quest.reward ?? 10,
+        contentUrl: quest.contentUrl ?? "",
+        imageUrl: quest.imageUrl ?? "",
+        questions: Array.isArray(quest.questions) ? quest.questions : [], // ✅ siempre array
+      });
+    } else {
       setForm({
         id: "",
         title: "",
@@ -29,12 +42,18 @@ export default function QuestForm({ quest, onSave }: Props) {
         stage: "initial",
         type: "text",
         reward: 10,
+        contentUrl: "",
+        imageUrl: "",
         questions: [],
       });
+    }
   }, [quest]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
+
     if (name === "type") {
       setForm(prev => ({
         ...prev,
@@ -55,7 +74,9 @@ export default function QuestForm({ quest, onSave }: Props) {
 
   return (
     <div className="bg-gray-800 p-4 rounded-lg shadow-md">
-      <h2 className="text-lg font-semibold text-green-400 mb-4">{quest ? "Editar Quest" : "Nueva Quest"}</h2>
+      <h2 className="text-lg font-semibold text-green-400 mb-4">
+        {quest ? "Editar Quest" : "Nueva Quest"}
+      </h2>
 
       <div className="flex flex-col gap-3">
         <label className="text-gray-400 text-sm">Título</label>
@@ -109,10 +130,32 @@ export default function QuestForm({ quest, onSave }: Props) {
           onChange={handleChange}
         />
 
-        {(form.type === "quiz" || form.type === "mixed") && (
-            <QuestionsInput questions={form.questions || []} onChange={q => setForm(prev => ({ ...prev, questions: q }))} />
-        )}
+        {/* Campos Content URL / Image URL */}
+        <label className="text-gray-400 text-sm">Content URL</label>
+        <input
+          className="p-2 rounded bg-gray-700 text-white"
+          name="contentUrl"
+          value={form.contentUrl}
+          onChange={e => setForm(prev => ({ ...prev, contentUrl: e.target.value }))}
+        />
 
+        <label className="text-gray-400 text-sm">Image URL</label>
+        <input
+          className="p-2 rounded bg-gray-700 text-white"
+          name="imageUrl"
+          value={form.imageUrl}
+          onChange={e => setForm(prev => ({ ...prev, imageUrl: e.target.value }))}
+        />
+
+        {/* Preguntas solo si es quiz o mixed */}
+        {(form.type === "quiz" || form.type === "mixed") && (
+          <QuestionsInput
+            questions={form.questions ?? []} // ✅ aseguramos array
+            onChange={(q: Question[]) =>
+              setForm(prev => ({ ...prev, questions: q }))
+            }
+          />
+        )}
 
         <button
           className="mt-3 bg-green-500 hover:bg-green-600 text-black font-bold p-2 rounded"

@@ -1,5 +1,5 @@
 // src/components/admin/QuestList.tsx
-import { type Quest } from "../../../data/questsData";
+import { type Quest } from "../../../types/Quest";
 
 interface Props {
   quests: Quest[];
