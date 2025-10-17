@@ -1,16 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { motion } from "framer-motion";
 import { Trophy, Twitter, MessageCircle, Gamepad2 as Discord } from "lucide-react";
-import { useState } from "react";
 
 interface SocialConnectProps {
   tasks: { twitter: boolean; telegram: boolean; discord: boolean };
-  onComplete: (type: string, sub?: string) => void;
+  onComplete: (type: string, sub?: string, value?: string) => void;
+  usernames: { [key: string]: string }; // recibiendo usernames desde Profile
 }
 
-export default function SocialConnect({ tasks, onComplete }: SocialConnectProps) {
-  const [usernames, setUsernames] = useState<{ [key: string]: string }>({});
-
+export default function SocialConnect({ tasks, onComplete, usernames }: SocialConnectProps) {
   const socials = [
     { name: "Twitter", icon: <Twitter />, key: "twitter" },
     { name: "Telegram", icon: <MessageCircle />, key: "telegram" },
@@ -20,13 +18,10 @@ export default function SocialConnect({ tasks, onComplete }: SocialConnectProps)
   const handleConnect = (key: string, name: string) => {
     if (tasks[key as keyof typeof tasks]) return;
 
-    // Pedir username
     const username = prompt(`Enter your ${name} username:`)?.trim();
     if (!username) return;
 
-    // Guardar username y marcar tarea como completada
-    setUsernames((prev) => ({ ...prev, [key]: username }));
-    onComplete("social", key);
+    onComplete("social", key, username);
   };
 
   return (
