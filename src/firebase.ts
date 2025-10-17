@@ -158,3 +158,50 @@ export async function updateUserProfile(uid: string, data: Record<string, any>) 
     console.error("Error updating user profile:", err);
   }
 }
+
+// --- Referral Codes ---
+// Añade un código de referido para un usuario
+export async function addReferralCode(uid: string, code: string) {
+  if (!uid) return;
+  try {
+    const codeRef = doc(db, "users", uid, "referralCodes", code);
+    await setDoc(codeRef, {
+      code,
+      status: "unused",
+      createdAt: serverTimestamp(),
+    });
+    console.log("Referral code added:", code);
+  } catch (err) {
+    console.error("Error adding referral code:", err);
+    throw err;
+  }
+}
+
+// Actualiza el estado de un código de referido
+export async function updateReferralCode(uid: string, code: string, status: "unused" | "pending" | "completed") {
+  if (!uid) return;
+  try {
+    const codeRef = doc(db, "users", uid, "referralCodes", code);
+    await setDoc(codeRef, { status }, { merge: true });
+    console.log("Referral code updated:", code, status);
+  } catch (err) {
+    console.error("Error updating referral code:", err);
+    throw err;
+  }
+}
+
+// Sumar puntos/XP de forma persistente
+export async function addUserXP(uid: string, points: number) {
+  if (!uid) return;
+  const userRef = doc(db, "users", uid);
+  try {
+    const snapshot = await getDoc(userRef);
+    if (!snapshot.exists()) return;
+    const currentXP = snapshot.data()?.xp || 0;
+    await updateUserProfile(uid, { xp: currentXP + points });
+    console.log(`Added ${points} XP to user ${uid}`);
+  } catch (err) {
+    console.error("Error adding XP:", err);
+    throw err;
+  }
+}

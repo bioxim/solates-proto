@@ -36,6 +36,8 @@ import Quests from "./pages/Quests";
 import QuestDetail from "./pages/QuestDetail";
 import InviteFriends from "./pages/InviteFriends";
 import Admin from "./pages/Admin";
+import AdminQuests from "./pages/admin/AdminQuests";
+
 
 
 export default function App() {
@@ -123,6 +125,15 @@ export default function App() {
                 </PrivateRoute>
               }
             />
+            <Route
+              path="/admin/quests"
+              element={
+                <PrivateRoute>
+                  <AdminQuests />
+                </PrivateRoute>
+              }
+            />
+
 
           </Routes>
         </main>

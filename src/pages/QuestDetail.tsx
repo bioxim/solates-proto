@@ -3,14 +3,27 @@ import { useEffect, useState } from "react";
 import { questsData } from "../data/questsData";
 import { motion } from "framer-motion";
 import { CheckCircle } from "lucide-react";
+import { auth, updateUserProfile } from "../firebase";
+import { onAuthStateChanged } from "firebase/auth";
 
 export default function QuestDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [completed, setCompleted] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [user, setUser] = useState<any>(null);
 
   const quest = questsData.find((q) => q.id === id);
 
+  // --- Detectar usuario logueado
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (u) => {
+      setUser(u);
+    });
+    return () => unsub();
+  }, []);
+
+  // --- Cargar progreso local
   useEffect(() => {
     const saved = localStorage.getItem("solates_quests_progress");
     if (saved) {
@@ -19,16 +32,26 @@ export default function QuestDetail() {
     }
   }, [id]);
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
+    if (!user?.uid || !quest) return;
+
     const saved = localStorage.getItem("solates_quests_progress");
     const progress = saved ? JSON.parse(saved) : [];
     if (!progress.includes(id)) {
       progress.push(id);
       localStorage.setItem("solates_quests_progress", JSON.stringify(progress));
     }
+
     setCompleted(true);
 
-    // Optional toast or redirect
+    // ✅ Sumar XP en Firestore
+    try {
+      await updateUserProfile(user.uid, { xpIncrement: quest.reward }); 
+      alert(`🎉 You earned ${quest.reward} XP!`);
+    } catch (err) {
+      console.error("Error updating XP:", err);
+    }
+
     setTimeout(() => navigate("/quests"), 1500);
   };
 
@@ -50,7 +73,6 @@ export default function QuestDetail() {
         <h1 className="text-3xl font-bold">{quest.title}</h1>
         <p className="opacity-80">{quest.description}</p>
 
-        {/* Video Section */}
         {quest.contentUrl && (
           <div className="mt-4">
             <iframe
@@ -62,7 +84,6 @@ export default function QuestDetail() {
           </div>
         )}
 
-        {/* Image Section */}
         {quest.imageUrl && (
           <img
             src={quest.imageUrl}
@@ -71,29 +92,6 @@ export default function QuestDetail() {
           />
         )}
 
-        {/* Quiz Section */}
-        {quest.questions && (
-          <div className="mt-6 space-y-4">
-            <h3 className="font-semibold text-lg">Quick Quiz</h3>
-            {quest.questions.map((q, i) => (
-              <div key={i} className="bg-gray-800/40 p-4 rounded-xl">
-                <p className="font-medium mb-2">{q.q}</p>
-                <ul className="space-y-1">
-                  {q.options.map((opt, idx) => (
-                    <li
-                      key={idx}
-                      className="px-3 py-1 rounded-md bg-gray-900/40 hover:bg-[var(--primary)]/20 cursor-pointer"
-                    >
-                      {opt}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Completion Button */}
         {!completed ? (
           <button
             onClick={handleComplete}
