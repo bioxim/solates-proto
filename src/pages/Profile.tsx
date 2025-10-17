@@ -12,13 +12,17 @@ import { doc, getDoc, setDoc } from "firebase/firestore";
 import { updateUserProfile } from "../firebase";
 import { getRankInfo } from "../utils/levelSystem";
 
+import { Buffer } from "buffer";
+window.Buffer = Buffer;
+
 import AvatarUpload from "../components/profile/AvatarUpload";
 import SocialConnect from "../components/profile/SocialConnect";
 import EmailVerify from "../components/profile/EmailVerify";
 
 export default function Profile() {
   const navigate = useNavigate();
-  const { connected, publicKey } = useWallet();
+  //const { connected, publicKey, disconnect } = useWallet();
+  const { connected, publicKey, signMessage, disconnect } = useWallet();
 
   const [user, setUser] = useState<any>(null);
   const [xp, setXp] = useState(0);
@@ -36,6 +40,11 @@ export default function Profile() {
 
   const hasLoadedRef = useRef(false);
 
+  // --- Evitar reconexión automática del adaptador ---
+  useEffect(() => {
+    localStorage.removeItem("walletName");
+  }, []);
+
   // --- Cargar datos del usuario desde Firestore ---
   const loadUserFromFirestore = async (uid: string) => {
     try {
@@ -43,7 +52,6 @@ export default function Profile() {
       const snap = await getDoc(userRef);
 
       if (!snap.exists()) {
-        // Usuario nuevo
         setXp(0);
         setLevel(1);
         setTasks({
@@ -67,13 +75,11 @@ export default function Profile() {
         wallet: !!data.wallet,
       });
 
-      // Persistencia de wallet única
       if (data.wallet) {
         const walletRef = doc(db, "wallets", data.wallet);
         const walletSnap = await getDoc(walletRef);
 
         if (!walletSnap.exists() || walletSnap.data().userId !== uid) {
-          // Wallet inválida → eliminar del perfil
           await updateUserProfile(uid, { wallet: null });
           setWalletAddress(null);
         } else {
@@ -118,82 +124,68 @@ export default function Profile() {
   }, [xp, level, tasks, user]);
 
   // --- Vincular wallet única ---
-  const linkWallet = async () => {
-    if (!user?.uid || !connected || !publicKey) return;
+  // --- Vincular wallet única (con firma de consentimiento) ---
+const linkWallet = async () => {
+  if (!user?.uid || !connected || !publicKey) {
+    console.warn("No user / wallet connected");
+    return;
+  }
+
+  // Preparar mensaje humano que el usuario firmará
+  const walletBase58 = publicKey.toBase58();
+  const timestamp = new Date().toISOString();
+  const messageText = `🔹 Solates – Wallet Linking Request
+
+    You are signing this message to confirm that you own the wallet below 
+    and agree to link it to your Solates account.
+
+    This signature:
+    - Does NOT cost any gas or fees.
+    - Does NOT perform any blockchain transaction.
+    - Is only used for account verification.
+
+    Wallet Address: ${walletBase58}
+    User ID: ${user.uid}
+    Timestamp: ${timestamp}
+    Nonce: ${Math.random().toString(36).slice(2, 10)}
+
+    By signing, you authorize Solates to link this wallet to your profile.`;
+
     try {
-      const newWallet = publicKey.toBase58();
-      const walletRef = doc(db, "wallets", newWallet);
-      const walletSnap = await getDoc(walletRef);
-
-      // Si la wallet ya existe y pertenece a otro usuario → conflicto
-      if (walletSnap.exists() && walletSnap.data().userId !== user.uid) {
-        setWalletConflict(true);
+      // Verificar que el adapter soporte signMessage
+      if (typeof signMessage !== "function") {
+        alert("Este wallet no soporta firma de mensajes. Usá Phantom o Backpack para firmar y asociar la wallet.");
         return;
       }
 
-      // Verificar si el usuario ya tiene wallet
-      const userRef = doc(db, "users", user.uid);
-      const userSnap = await getDoc(userRef);
-      const currentWallet = userSnap.data()?.wallet;
+      // Convertir message a Uint8Array y pedir firma
+      const encoded = new TextEncoder().encode(messageText);
+      const signed = await signMessage(encoded); // devuelve Uint8Array
+      const signatureBase64 = Buffer.from(signed).toString("base64");
 
-      if (currentWallet) {
-        setWalletAddress(currentWallet);
-        setWalletConflict(false);
-        return;
-      }
+      // Guardar en Firestore: wallet doc con signature y en el perfil del usuario
+      const walletRef = doc(db, "wallets", walletBase58);
+      await setDoc(walletRef, {
+        userId: user.uid,
+        message: messageText,
+        signature: signatureBase64,
+        signedAt: timestamp,
+      }, { merge: true });
 
-      // Registrar wallet única
-      //await setDoc(walletRef, { userId: user.uid });
+      await updateUserProfile(user.uid, { wallet: walletBase58 });
 
-      const linkWallet = async () => {
-        if (!user?.uid || !connected || !publicKey) return;
-
-        const newWallet = publicKey.toBase58();
-        const walletRef = doc(db, "wallets", newWallet);
-
-        try {
-          const walletSnap = await getDoc(walletRef);
-
-          // Si la wallet ya existe, conflicto
-          if (walletSnap.exists()) {
-            // Verificamos si es la misma cuenta
-            if (walletSnap.data().userId === user.uid) {
-              setWalletAddress(newWallet);
-              setWalletConflict(false);
-            } else {
-              setWalletConflict(true);
-              setWalletAddress(null);
-            }
-            return;
-          }
-
-          // Wallet no existe: crearla
-          await setDoc(walletRef, { userId: user.uid });
-
-          // Guardar wallet en perfil del usuario
-          await updateUserProfile(user.uid, { wallet: newWallet });
-
-          setWalletAddress(newWallet);
-          setTasks((prev) => ({ ...prev, wallet: true }));
-          setXp((prev) => prev + 10);
-          setWalletConflict(false);
-
-        } catch (err) {
-          console.error("Error linking wallet:", err);
-        }
-      };
-
-
-      // Guardar wallet en perfil del usuario
-      await updateUserProfile(user.uid, { wallet: newWallet });
-      setWalletAddress(newWallet);
+      setWalletAddress(walletBase58);
       setTasks((prev) => ({ ...prev, wallet: true }));
       setXp((prev) => prev + 10);
       setWalletConflict(false);
-    } catch (err) {
-      console.error("Error linking wallet:", err);
+
+    } catch (err: any) {
+      console.error("Error linking wallet (signature flow):", err);
+      // Mensaje claro al usuario
+      alert("No se pudo firmar/guardar la asociación. Revisá permisos en tu wallet y volvé a intentar.");
     }
   };
+
 
   // --- Nivel automático ---
   useEffect(() => {
@@ -238,30 +230,25 @@ export default function Profile() {
           </p>
         </div>
 
-        <AvatarUpload
-          completed={tasks.avatar}
-          onComplete={() => handleComplete("avatar")}
-          user={user}
-        />
-        
-        <SocialConnect 
-          tasks={tasks.socials} 
-          onComplete={handleComplete} 
-        />
+        <AvatarUpload completed={tasks.avatar} onComplete={() => handleComplete("avatar")} user={user} />
 
-        <EmailVerify 
-          completed={tasks.email} 
-          onComplete={() => handleComplete("email")} 
-        />
+        <SocialConnect tasks={tasks.socials} onComplete={handleComplete} />
 
+        <EmailVerify completed={tasks.email} onComplete={() => handleComplete("email")} />
 
         {/* --- WALLET --- */}
         <motion.div className="bg-[var(--card)]/50 p-6 rounded-2xl border border-[var(--card)] backdrop-blur-md shadow-lg text-center">
           <h2 className="font-semibold text-lg mb-3 flex justify-center items-center gap-2">
             <Wallet className="text-[var(--primary)]" /> Wallet
           </h2>
+
           {!connected ? (
-            <WalletMultiButton className="!bg-[var(--primary)] !text-white !rounded-lg !font-semibold hover:opacity-90 transition !px-5 !py-2" />
+            <WalletMultiButton
+              className="!bg-[var(--primary)] !text-white !rounded-lg !font-semibold hover:opacity-90 transition !px-5 !py-2"
+              onClick={() => {
+                localStorage.removeItem("walletName");
+              }}
+            />
           ) : walletConflict ? (
             <p className="text-yellow-400 font-semibold">
               ⚠️ Wallet already linked to another account
@@ -303,7 +290,6 @@ export default function Profile() {
             />
           </div>
 
-          {/* --- Rank usando levelSystem --- */}
           <p className="text-sm opacity-80 mt-2 text-center">
             Level {level} — {xp} XP
           </p>

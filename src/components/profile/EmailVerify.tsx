@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { motion } from "framer-motion";
 import { Mail } from "lucide-react";
+import { useEffect } from "react";
+import { getAuth } from "firebase/auth";
 
 interface EmailVerifyProps {
   completed: boolean;
@@ -8,20 +10,29 @@ interface EmailVerifyProps {
 }
 
 export default function EmailVerify({ completed, onComplete }: EmailVerifyProps) {
+  const auth = getAuth();
+  const user = auth.currentUser;
+
+  useEffect(() => {
+    // Si hay usuario con email y todavía no se marcó como completado,
+    // se da automáticamente la verificación.
+    if (user?.email && !completed) {
+      onComplete();
+    }
+  }, [user, completed, onComplete]);
+
   return (
     <motion.div className="bg-[var(--card)]/50 p-6 rounded-2xl border border-[var(--card)] backdrop-blur-md shadow-lg text-center">
       <h2 className="font-semibold text-lg mb-3 flex justify-center items-center gap-2">
         <Mail className="text-[var(--primary)]" /> Verify Your Email
       </h2>
-      {!completed ? (
-        <button
-          onClick={onComplete}
-          className="px-5 py-2 bg-[var(--primary)] text-white rounded-lg font-semibold hover:opacity-90 transition"
-        >
-          Verify Email
-        </button>
+
+      {user?.email ? (
+        <p className="text-[var(--primary)] font-semibold">
+          ✅ {user.email} verified (+10 XP)
+        </p>
       ) : (
-        <p className="text-[var(--primary)] font-semibold">✅ Verified (+10 points)</p>
+        <p className="text-gray-400">No email found for this user.</p>
       )}
     </motion.div>
   );
