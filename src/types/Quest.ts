@@ -11,6 +11,7 @@ export interface Quest {
   stage: "initial" | "intermediate" | "advanced" | "bonus";
   type: "text" | "video" | "quiz" | "mixed";
   reward: number;
+  order: number;
   contentUrl?: string;
   imageUrl?: string;
   questions?: Question[];

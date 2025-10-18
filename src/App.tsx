@@ -37,6 +37,9 @@ import QuestDetail from "./pages/QuestDetail";
 import InviteFriends from "./pages/InviteFriends";
 import Admin from "./pages/Admin";
 import AdminQuests from "./pages/admin/AdminQuests";
+import AdminSettings from "./pages/admin/AdminSettings";
+import AdminNewsletter from "./pages/admin/AdminNewsletters";
+import AdminUsers from "./pages/admin/AdminUsers";
 
 
 
@@ -133,7 +136,30 @@ export default function App() {
                 </PrivateRoute>
               }
             />
-
+            <Route
+              path="/admin/settings"
+              element={
+                <PrivateRoute>
+                  <AdminSettings />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/admin/newsletter"
+              element={
+                <PrivateRoute>
+                  <AdminNewsletter />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/admin/users"
+              element={
+                <PrivateRoute>
+                  <AdminUsers />
+                </PrivateRoute>
+              }
+            />
 
           </Routes>
         </main>

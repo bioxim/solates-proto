@@ -1,6 +1,14 @@
 // src/pages/admin/AdminQuests.tsx
 import { useState, useEffect } from "react";
-import { collection, getDocs, addDoc, updateDoc, doc } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  addDoc,
+  updateDoc,
+  doc,
+  query,
+  orderBy,
+} from "firebase/firestore";
 import { db } from "../../firebase";
 import LeftSidebar from "../../components/admin/LeftSidebar";
 import QuestForm from "../../components/admin/quests/QuestForm";
@@ -17,11 +25,13 @@ export default function AdminQuests() {
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
 
-  // 🔹 Cargar quests desde Firestore
+  // 🔹 Cargar quests desde Firestore ordenadas por "order"
   useEffect(() => {
     const fetchQuests = async () => {
       try {
-        const snap = await getDocs(collection(db, "quests"));
+        const questsRef = collection(db, "quests");
+        const q = query(questsRef, orderBy("order", "asc"));
+        const snap = await getDocs(q);
         const data = snap.docs.map((d) => ({ id: d.id, ...d.data() })) as Quest[];
         setQuests(data);
       } catch (err) {

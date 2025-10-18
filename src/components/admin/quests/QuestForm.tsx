@@ -16,6 +16,7 @@ export default function QuestForm({ quest, onSave }: Props) {
     stage: "initial",
     type: "text",
     reward: 10,
+    order: 0,
     contentUrl: "",
     imageUrl: "",
     questions: [],
@@ -30,6 +31,7 @@ export default function QuestForm({ quest, onSave }: Props) {
         stage: quest.stage ?? "initial",
         type: quest.type ?? "text",
         reward: quest.reward ?? 10,
+        order: quest.order ?? 0,
         contentUrl: quest.contentUrl ?? "",
         imageUrl: quest.imageUrl ?? "",
         questions: Array.isArray(quest.questions) ? quest.questions : [], // ✅ siempre array
@@ -42,6 +44,7 @@ export default function QuestForm({ quest, onSave }: Props) {
         stage: "initial",
         type: "text",
         reward: 10,
+        order: 0,
         contentUrl: "",
         imageUrl: "",
         questions: [],
@@ -127,6 +130,16 @@ export default function QuestForm({ quest, onSave }: Props) {
           name="reward"
           value={form.reward}
           type="number"
+          onChange={handleChange}
+        />
+
+        {/* 👇 Nuevo campo de orden */}
+        <label className="text-gray-400 text-sm">Orden</label>
+        <input
+          className="p-2 rounded bg-gray-700 text-white"
+          name="order"
+          type="number"
+          value={form.order}
           onChange={handleChange}
         />
 
