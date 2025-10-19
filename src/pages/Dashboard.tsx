@@ -1,5 +1,5 @@
 import ProfileSummary from "../components/dashboard/ProfileSummary";
-import DailyCheckIn from "../components/DailyCheckIn";
+import DailyCheckIn from "../components/dashboard/DailyCheckIn";
 import NextQuest from "../components/dashboard/NextQuest";
 import WalletStats from "../components/dashboard/WalletStats";
 import LiquidityAlerts from "../components/dashboard/LiquidityAlerts";

@@ -15,7 +15,6 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import DailyCheckIn from "../components/DailyCheckIn";
 
 export default function RightSidebar() {
   const [open, setOpen] = useState(true);
@@ -182,18 +181,6 @@ export default function RightSidebar() {
                   </span>
                 )}
               </button>
-            )}
-
-            {/* 💫 Daily Check-in */}
-            {open && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                className="w-full"
-              >
-                <DailyCheckIn />
-              </motion.div>
             )}
 
             {/* 🔴 Logout */}
