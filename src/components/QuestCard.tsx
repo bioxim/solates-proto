@@ -10,6 +10,7 @@ interface QuestCardProps {
   index: number;
   unlocked: boolean;
   completed: boolean;
+  onComplete?: () => void;
 }
 
 export default function QuestCard({
@@ -19,7 +20,7 @@ export default function QuestCard({
   reward,
   index,
   unlocked,
-  completed,
+  completed
 }: QuestCardProps) {
   const navigate = useNavigate();
 

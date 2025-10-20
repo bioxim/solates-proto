@@ -1,14 +1,12 @@
 import { useEffect, useState } from "react";
 import { Cpu, Lock } from "lucide-react";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
 import { doc, onSnapshot } from "firebase/firestore";
 import { auth, db } from "../../firebase"; 
 
 export default function MiningLink() {
   const [xp, setXp] = useState<number>(0);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
   const REQUIRED_XP = 500;
 
   useEffect(() => {
