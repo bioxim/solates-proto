@@ -59,7 +59,7 @@ export default function MiningLink() {
         <div>
           {unlocked ? (
             <button
-              onClick={() => window.open("https://mining.solates.app", "_blank")}
+              onClick={() => window.open("https://solates-mining.vercel.app/", "_blank")}
               className="px-3 py-1 rounded-md bg-[var(--primary)] text-white"
             >
               Enter
