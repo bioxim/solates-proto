@@ -9,7 +9,7 @@ import LoginModal from "../components/LoginModal";
 import logo from "../assets/logo-tr.png";
 import bg from "../assets/solates-bg.mp4";
 import dashboard from "../assets/landing-dashboard.png";
-import Newsletter from "../components/Newsletter";
+import Newsletter from "../components/newsletter/Newsletter";
 
 
 export default function Home() {

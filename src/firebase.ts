@@ -71,6 +71,43 @@ export async function subscribeToNewsletter(email: string) {
   }
 }
 
+// -- Newsletter -- generate token
+const genToken = () => {
+  // use crypto if available
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  try { return crypto.randomUUID(); } catch (e) { return Math.random().toString(36).slice(2)+Date.now().toString(36); }
+};
+
+/**
+ * Creates a pending newsletter doc and returns the token.
+ */
+export async function createPendingSubscription(email: string) {
+  const token = genToken();
+  const docRef = await addDoc(collection(db, "newsletter"), {
+    email,
+    verified: false,
+    token,
+    createdAt: serverTimestamp()
+  });
+  return { id: docRef.id, token };
+}
+
+/**
+ * Verify a Newsletter token, set verified=true and return the email (or null).
+ */
+export async function verifySubscriptionToken(token: string) {
+  const q = query(collection(db, "newsletter"), where("token", "==", token));
+  const snap = await getDocs(q);
+  if (snap.empty) return null;
+  // take first match
+  const docSnap = snap.docs[0];
+  const data = docSnap.data();
+  if (data.verified === true) return data.email;
+  await updateDoc(doc(db, "newsletter", docSnap.id), { verified: true, verifiedAt: serverTimestamp() });
+  return data.email;
+}
+
+// --- End Newsletter
 
 // --- Registro temporal + verificación ---
 export async function registerAndSendVerification(email: string) {

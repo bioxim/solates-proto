@@ -6,7 +6,7 @@ import { Gift, UserPlus, Clipboard } from "lucide-react";
 import { auth, addUserXP, addReferralCode, updateReferralCode, db } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { getDocs, collection } from "firebase/firestore";
-import Newsletter from "../components/Newsletter";
+import Newsletter from "../components/newsletter/Newsletter";
 
 interface ReferralCode {
   code: string;

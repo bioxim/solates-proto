@@ -14,6 +14,8 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import RightSidebar from "./components/RightSidebar";
 import PrivateRoute from "./components/PrivateRoute";
+import Newsletter from "./components/newsletter/Newsletter";
+import VerifyEmail from "./components/newsletter/EmailVerify";
 
 // Public pages
 import Home from "./pages/Home";
@@ -68,6 +70,10 @@ export default function App() {
             <Route path="/docs" element={<Docs />} />
             <Route path="/airdrop" element={<Airdrop />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
+
+            {/* 🌍 Newsletter routes */}
+            <Route path="/" element={<Newsletter />} />
+            <Route path="/verify" element={<VerifyEmail />} />
 
             {/* 📘 Documentation routes */}
             <Route path="/docs" element={<DocsLayout />}>
