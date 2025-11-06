@@ -28,29 +28,40 @@ export default function RightSidebar() {
   const ADMIN_EMAIL = "mariaximenacamino@gmail.com";
 
   useEffect(() => {
-  const unsub = onAuthStateChanged(auth, (user) => {
-    if (user) {
-      setUserEmail(user.email || null);
-      const userRef = doc(db, "users", user.uid);
+    const unsub = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setUserEmail(user.email || null);
+        const userRef = doc(db, "users", user.uid);
 
-      // 🔥 Escucha en tiempo real los cambios de XP / Level
-      const unsubscribeSnapshot = onSnapshot(userRef, (snap) => {
-        if (snap.exists()) {
-          const data = snap.data();
-          setXp(data.xp || 0);
-          setLevel(data.level || 1);
-        }
-      });
+        // 🔥 Escucha en tiempo real los cambios de XP / Level
+        const unsubscribeSnapshot = onSnapshot(userRef, (snap) => {
+          if (snap.exists()) {
+            const data = snap.data();
+            setXp(data.xp || 0);
+            setLevel(data.level || 1);
+          }
+        });
 
-      return () => unsubscribeSnapshot();
-    } else {
-      setUserEmail(null);
-      setXp(0);
-      setLevel(1);
-    }
-  });
-  return () => unsub();
-}, []);
+        return () => unsubscribeSnapshot();
+      } else {
+        setUserEmail(null);
+        setXp(0);
+        setLevel(1);
+      }
+    });
+    return () => unsub();
+  }, []);
+
+  // 🧭 Clothing sidebar while changing routes
+  useEffect(() => {
+    setOpen(false);
+  }, [location.pathname]);
+
+  // 🔄 Always closed when refreshed
+  useEffect(() => {
+    setOpen(false);
+  }, []);
+
 
 
   // 🧮 Calcular porcentaje y rango
