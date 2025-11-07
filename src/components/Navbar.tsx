@@ -11,8 +11,9 @@ export default function Navbar() {
   const [user, setUser] = useState<any>(null);
   const [showLogin, setShowLogin] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [customAvatar, setCustomAvatar] = useState<string | null>(null);
 
-  // Tema
+  // === Tema ===
   const [isDark, setIsDark] = useState<boolean>(() => {
     try {
       const saved = localStorage.getItem("theme");
@@ -24,27 +25,46 @@ export default function Navbar() {
     }
   });
 
-  // Sync DOM + persistencia
+  // === Sincronizar DOM y persistencia ===
   useEffect(() => {
     if (isDark) document.documentElement.classList.add("dark");
     else document.documentElement.classList.remove("dark");
-
     localStorage.setItem("theme", isDark ? "dark" : "light");
   }, [isDark]);
 
-  // Auth listener
+  const toggleTheme = () => setIsDark((v) => !v);
+
+  // === Listener de autenticación ===
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => setUser(u));
+    const unsub = onAuthStateChanged(auth, (u) => {
+      setUser(u);
+      if (u?.uid) {
+        const localAvatar = localStorage.getItem(`avatar_${u.uid}`);
+        setCustomAvatar(localAvatar || null);
+      } else {
+        setCustomAvatar(null);
+      }
+    });
     return () => unsub();
   }, []);
 
-  const toggleTheme = () => setIsDark((v) => !v);
-
+  // === Escuchar cambios en avatar desde AvatarUpload ===
+  useEffect(() => {
+    const handleAvatarChange = (event: Event) => {
+      const detail = (event as CustomEvent).detail;
+      if (user?.uid && detail?.uid === user.uid) {
+        const localAvatar = localStorage.getItem(`avatar_${user.uid}`);
+        setCustomAvatar(localAvatar || null);
+      }
+    };
+    window.addEventListener("avatarUpdated", handleAvatarChange);
+    return () => window.removeEventListener("avatarUpdated", handleAvatarChange);
+  }, [user]);
 
   return (
     <>
       <nav className="flex items-center justify-between px-6 py-4 bg-[var(--bg)] border-b border-[var(--card)] relative z-50">
-        {/* LEFT */}
+        {/* === LEFT === */}
         <div className="flex items-center gap-6">
           <Link to="/" className="flex items-center gap-3">
             <img src={logo} alt="Solates" className="w-8 h-8 object-contain" />
@@ -59,9 +79,9 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* RIGHT */}
+        {/* === RIGHT === */}
         <div className="flex items-center gap-4 relative">
-          {/* Theme toggle */}
+          {/* === Toggle de tema === */}
           <button
             aria-label="Toggle theme"
             onClick={toggleTheme}
@@ -75,7 +95,7 @@ export default function Navbar() {
             )}
           </button>
 
-          {/* Login / Avatar */}
+          {/* === Login / Avatar === */}
           {!user ? (
             <button
               onClick={() => setShowLogin(true)}
@@ -91,6 +111,7 @@ export default function Navbar() {
               >
                 <img
                   src={
+                    customAvatar ||
                     user.photoURL ||
                     `https://ui-avatars.com/api/?name=${encodeURIComponent(
                       user.displayName || user.email || "User"
@@ -105,7 +126,7 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* Login modal */}
+      {/* === Modal de login === */}
       {showLogin && <LoginModal onClose={() => setShowLogin(false)} />}
     </>
   );
