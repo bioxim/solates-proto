@@ -63,7 +63,8 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="flex items-center justify-between px-6 py-4 bg-[var(--bg)] border-b border-[var(--card)] relative z-50">
+      <nav className="fixed top-0 left-0 w-full flex items-center justify-between px-6 py-4 bg-[var(--bg)] border-b border-[var(--card)] backdrop-blur-md bg-opacity-80 z-50">
+
         {/* === LEFT === */}
         <div className="flex items-center gap-6">
           <Link to="/" className="flex items-center gap-3">
