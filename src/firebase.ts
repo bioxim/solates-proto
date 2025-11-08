@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // src/firebase.ts
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
@@ -20,10 +21,12 @@ import {
   setDoc,
   updateDoc,
   serverTimestamp,
+  runTransaction, // 👈 añadido para manejo transaccional
+  collectionGroup,
 } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
-// Configuración de Firebase
+// --- Configuración Firebase ---
 const firebaseConfig = {
   apiKey: "AIzaSyD8E9BpGcCvlM7nDlwIpUAka2XY8tHqpd4",
   authDomain: "solates.firebaseapp.com",
@@ -34,7 +37,7 @@ const firebaseConfig = {
   measurementId: "G-7DS4SMR49Z",
 };
 
-// Inicialización
+// --- Inicialización ---
 const app = initializeApp(firebaseConfig);
 export const analytics = getAnalytics(app);
 export const db = getFirestore(app);
@@ -42,8 +45,7 @@ export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 export const storage = getStorage(app);
 
-
-// --- Newsletter ---
+// === Newsletter ===
 export async function subscribeToNewsletter(email: string) {
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   if (!emailRegex.test(email)) throw new Error("Invalid email format.");
@@ -52,18 +54,14 @@ export async function subscribeToNewsletter(email: string) {
     const q = query(collection(db, "newsletter"), where("email", "==", email));
     const snapshot = await getDocs(q);
 
-    if (!snapshot.empty) {
-      console.log("Email already subscribed:", email);
-      return snapshot.docs[0].id; // devuelve id existente
-    }
+    if (!snapshot.empty) return snapshot.docs[0].id;
 
     const docRef = await addDoc(collection(db, "newsletter"), {
       email,
       createdAt: serverTimestamp(),
-      verified: false, // opcional
+      verified: false,
     });
 
-    console.log("Email saved in Firestore:", docRef.id);
     return docRef.id;
   } catch (err) {
     console.error("Error adding email:", err);
@@ -71,45 +69,41 @@ export async function subscribeToNewsletter(email: string) {
   }
 }
 
-// -- Newsletter -- generate token
 const genToken = () => {
-  // use crypto if available
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  try { return crypto.randomUUID(); } catch (e) { return Math.random().toString(36).slice(2)+Date.now().toString(36); }
+  try {
+    return crypto.randomUUID();
+  } catch {
+    return Math.random().toString(36).slice(2) + Date.now().toString(36);
+  }
 };
 
-/**
- * Creates a pending newsletter doc and returns the token.
- */
+// === Newsletter tokens ===
 export async function createPendingSubscription(email: string) {
   const token = genToken();
   const docRef = await addDoc(collection(db, "newsletter"), {
     email,
     verified: false,
     token,
-    createdAt: serverTimestamp()
+    createdAt: serverTimestamp(),
   });
   return { id: docRef.id, token };
 }
 
-/**
- * Verify a Newsletter token, set verified=true and return the email (or null).
- */
 export async function verifySubscriptionToken(token: string) {
   const q = query(collection(db, "newsletter"), where("token", "==", token));
   const snap = await getDocs(q);
   if (snap.empty) return null;
-  // take first match
   const docSnap = snap.docs[0];
   const data = docSnap.data();
   if (data.verified === true) return data.email;
-  await updateDoc(doc(db, "newsletter", docSnap.id), { verified: true, verifiedAt: serverTimestamp() });
+  await updateDoc(doc(db, "newsletter", docSnap.id), {
+    verified: true,
+    verifiedAt: serverTimestamp(),
+  });
   return data.email;
 }
 
-// --- End Newsletter
-
-// --- Registro temporal + verificación ---
+// === Registro y verificación de usuario ===
 export async function registerAndSendVerification(email: string) {
   try {
     const randomPassword = Math.random().toString(36).slice(-10);
@@ -118,30 +112,20 @@ export async function registerAndSendVerification(email: string) {
       email,
       randomPassword
     );
-
     await sendEmailVerification(userCredential.user);
-    console.log("Verification email sent to:", email);
     return true;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
-    if (error.code === "auth/email-already-in-use") {
-      console.warn("User already registered:", email);
-      return true; // No lanzar error si ya existe
-    }
-    console.error("Error during registration:", error.message);
+    if (error.code === "auth/email-already-in-use") return true;
     throw new Error(error.message);
   }
 }
 
-
-// --- Listener de verificados ---
+// === Listener para verificados ===
 export function listenForEmailVerification() {
   onAuthStateChanged(auth, async (user) => {
     if (user && user.email && user.emailVerified) {
-      console.log("User verified:", user.email);
       try {
         await subscribeToNewsletter(user.email);
-        console.log("Verified email saved:", user.email);
       } catch (err) {
         console.error("Error saving verified email:", err);
       }
@@ -149,12 +133,9 @@ export function listenForEmailVerification() {
   });
 }
 
-
-// --- ✅ NUEVO: Crear perfil de usuario al loguearse ---
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// === Crear perfil de usuario ===
 export async function createUserProfile(user: any) {
   if (!user?.uid) return;
-
   const userRef = doc(db, "users", user.uid);
   const snapshot = await getDoc(userRef);
 
@@ -167,37 +148,24 @@ export async function createUserProfile(user: any) {
       xp: 0,
       level: 1,
       role: "student",
+      referredBy: null,
       joinedAt: serverTimestamp(),
     });
-    console.log("User profile created:", user.email);
-  } else {
-    console.log("User profile already exists:", user.email);
   }
 }
 
-// ✅ Actualiza XP, tareas o cualquier campo del perfil
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// === Actualizar perfil ===
 export async function updateUserProfile(uid: string, data: Record<string, any>) {
-  if (!uid) {
-    console.warn("updateUserProfile: missing uid");
-    return;
-  }
-
+  if (!uid) return;
   const userRef = doc(db, "users", uid);
-
   try {
-    await updateDoc(userRef, {
-      ...data,
-      updatedAt: serverTimestamp(),
-    });
-    console.log("User profile updated:", data);
+    await updateDoc(userRef, { ...data, updatedAt: serverTimestamp() });
   } catch (err) {
     console.error("Error updating user profile:", err);
   }
 }
 
-// --- Referral Codes ---
-// Añade un código de referido para un usuario
+// === Añadir código de referido ===
 export async function addReferralCode(uid: string, code: string) {
   if (!uid) return;
   try {
@@ -206,39 +174,139 @@ export async function addReferralCode(uid: string, code: string) {
       code,
       status: "unused",
       createdAt: serverTimestamp(),
+      owner: uid,
     });
-    console.log("Referral code added:", code);
   } catch (err) {
     console.error("Error adding referral code:", err);
     throw err;
   }
 }
 
-// Actualiza el estado de un código de referido
-export async function updateReferralCode(uid: string, code: string, status: "unused" | "pending" | "completed") {
+// === Actualizar estado de código ===
+export async function updateReferralCode(
+  uid: string,
+  code: string,
+  status: "unused" | "pending" | "completed"
+) {
   if (!uid) return;
   try {
     const codeRef = doc(db, "users", uid, "referralCodes", code);
-    await setDoc(codeRef, { status }, { merge: true });
-    console.log("Referral code updated:", code, status);
+    await updateDoc(codeRef, {
+      status,
+      updatedAt: serverTimestamp(),
+    });
+    console.log(`Referral code ${code} updated to ${status}`);
   } catch (err) {
     console.error("Error updating referral code:", err);
     throw err;
   }
 }
 
-// Sumar puntos/XP de forma persistente
+
+// === Sumar puntos (versión transaccional) ===
 export async function addUserXP(uid: string, points: number) {
   if (!uid) return;
   const userRef = doc(db, "users", uid);
   try {
-    const snapshot = await getDoc(userRef);
-    if (!snapshot.exists()) return;
-    const currentXP = snapshot.data()?.xp || 0;
-    await updateUserProfile(uid, { xp: currentXP + points });
-    console.log(`Added ${points} XP to user ${uid}`);
+    await runTransaction(db, async (transaction) => {
+      const snapshot = await transaction.get(userRef);
+      if (!snapshot.exists()) return;
+      const currentXP = snapshot.data()?.xp || 0;
+      const newXP = currentXP + points;
+      transaction.update(userRef, {
+        xp: newXP,
+        updatedAt: serverTimestamp(),
+      });
+    });
+    console.log(`✅ Added ${points} XP to user ${uid}`);
   } catch (err) {
-    console.error("Error adding XP:", err);
+    console.error("Error adding XP transactionally:", err);
     throw err;
+  }
+}
+
+// === Sistema de referidos ===
+// === VERSIÓN CORREGIDA Y EFICIENTE ===
+export async function handleReferralUsage(
+  currentUid: string,
+  referralCode: string
+): Promise<string | null> {
+  try {
+    // 1. BÚSQUEDA EFICIENTE
+    // En lugar de leer todos los usuarios, buscamos en todas las
+    // subcolecciones "referralCodes" a la vez.
+    const codesQuery = query(
+      collectionGroup(db, "referralCodes"),
+      where("code", "==", referralCode)
+    );
+
+    const codesSnap = await getDocs(codesQuery);
+
+    if (codesSnap.empty) {
+      alert("⚠️ Invalid referral code. Please check and try again.");
+      console.warn("Invalid referral code:", referralCode);
+      return null;
+    }
+
+    // 2. OBTENER DATOS
+    const codeDoc = codesSnap.docs[0];
+    const codeData = codeDoc.data();
+
+    // Obtenemos el ID del dueño del código
+    // codeDoc.ref.parent.parent -> (code) -> (referralCodes) -> (USER DOCUMENT)
+    if (!codeDoc.ref.parent.parent) {
+        throw new Error("Code document structure is invalid.");
+    }
+    const referrerUid = codeDoc.ref.parent.parent.id;
+
+    console.log(`Found code ${referralCode} under user ${referrerUid}`);
+
+    // 3. VALIDACIONES
+    if (referrerUid === currentUid) {
+      alert("⚠️ You cannot use your own referral code!");
+      return null;
+    }
+
+    if (codeData.status !== "unused") {
+      alert("⚠️ This code has already been used.");
+      return null;
+    }
+
+    // (Opcional pero recomendado) Validar que el usuario actual no haya sido referido
+    const currentUserDoc = await getDoc(doc(db, "users", currentUid));
+    if (currentUserDoc.data()?.referredBy) {
+         alert("⚠️ You have already used a referral code.");
+         return null;
+    }
+
+    // 4. EJECUTAR ACCIONES
+    // Estas funciones ahora fallarán por permisos,
+    // ¡pero las arreglaremos en el Paso 2 con las reglas!
+
+    // 💰 1️⃣ Dar puntos al que refirió
+    await addUserXP(referrerUid, 100);
+
+    // 💰 2️⃣ Dar puntos al nuevo usuario
+    await addUserXP(currentUid, 15);
+
+    // 📝 3️⃣ Actualizar estado del código
+    await updateReferralCode(referrerUid, referralCode, "completed");
+
+    // 🪪 4️⃣ Guardar quién lo refirió
+    await updateUserProfile(currentUid, { referredBy: referrerUid });
+
+    alert("🎉 Referral applied successfully!");
+    console.log(`✅ Referral success: ${referrerUid} +100 / ${currentUid} +15`);
+    return referrerUid; // Devuelve el ID para la UI
+
+  } catch (err) {
+    console.error("🔥 Error handling referral:", err);
+    // Aquí es donde probablemente verás el error de permisos
+    if ((err as Error).message.includes("permission-denied")) {
+         alert("❌ Error applying referral. (Permissions error). Please check console.");
+    } else {
+         alert("❌ Error handling referral, please try again.");
+    }
+    return null;
   }
 }
