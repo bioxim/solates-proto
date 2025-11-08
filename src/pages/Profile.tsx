@@ -183,7 +183,7 @@ By signing, you authorize Solates to link this wallet to your profile.`;
       setWalletConflict(false);
     } catch (err: any) {
       console.error("Error linking wallet:", err);
-      alert("No se pudo firmar/guardar la wallet. Revisá permisos y volvé a intentar.");
+      alert("Could not sign/save the wallet. Check permissions, wallet address and try again.");
     }
   };
 
@@ -230,7 +230,7 @@ By signing, you authorize Solates to link this wallet to your profile.`;
   const getProgress = () => xp % 100;
 
   return (
-    <div className="min-h-screen bg-[var(--bg)] text-[var(--text)] p-6 flex flex-col items-center">
+    <div className="main-content min-h-screen bg-[var(--bg)] text-[var(--text)] p-6 flex flex-col items-center">
       <motion.div
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
@@ -246,7 +246,7 @@ By signing, you authorize Solates to link this wallet to your profile.`;
 
         <AvatarUpload completed={tasks.avatar} onComplete={() => handleComplete("avatar")} user={user} />
 
-        <SocialConnect tasks={tasks.socials} onComplete={handleComplete} usernames={socialUsernames} />
+        <SocialConnect tasks={tasks.socials} onComplete={handleComplete} usernames={socialUsernames} userId={""} />
 
         <EmailVerify completed={tasks.email} onComplete={() => handleComplete("email")} />
 
@@ -256,7 +256,11 @@ By signing, you authorize Solates to link this wallet to your profile.`;
             <Wallet className="text-[var(--primary)]" /> Wallet
           </h2>
 
-          {!connected ? (
+          {walletAddress ? (
+            <p className="text-[var(--primary)] font-semibold">
+              ✅ Linked ({walletAddress.slice(0, 4)}...{walletAddress.slice(-4)})
+            </p>
+          ) : !connected ? (
             <WalletMultiButton
               className="!bg-[var(--primary)] !text-white !rounded-lg !font-semibold hover:opacity-90 transition !px-5 !py-2"
               onClick={() => {
@@ -266,10 +270,6 @@ By signing, you authorize Solates to link this wallet to your profile.`;
           ) : walletConflict ? (
             <p className="text-yellow-400 font-semibold">
               ⚠️ Wallet already linked to another account
-            </p>
-          ) : walletAddress ? (
-            <p className="text-[var(--primary)] font-semibold">
-              ✅ Linked ({walletAddress.slice(0, 4)}...{walletAddress.slice(-4)})
             </p>
           ) : (
             <button

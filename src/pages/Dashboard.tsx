@@ -8,7 +8,7 @@ import { motion } from "framer-motion";
 
 export default function Dashboard() {
   return (
-    <div className="relative min-h-screen bg-[var(--bg)] text-[var(--text)] px-6 py-8 overflow-hidden">
+    <div className="main-content relative min-h-screen bg-[var(--bg)] text-[var(--text)] px-6 py-8 overflow-hidden">
       {/* Animated Solana-style gradient background */}
       <motion.div
         initial={{ opacity: 0 }}

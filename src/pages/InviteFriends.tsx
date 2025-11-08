@@ -97,7 +97,7 @@ export default function InviteFriends() {
   const totalPoints = totalCompleted * 100;
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-[var(--bg)] text-[var(--text)] p-6">
+    <div className="main-content flex flex-col items-center justify-center min-h-screen bg-[var(--bg)] text-[var(--text)] p-6">
       <motion.div
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}

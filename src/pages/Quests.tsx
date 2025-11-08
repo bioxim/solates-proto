@@ -94,7 +94,7 @@ export default function Quests() {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--bg)] text-[var(--text)] p-6 flex flex-col items-center">
+    <div className="main-content min-h-screen bg-[var(--bg)] text-[var(--text)] p-6 flex flex-col items-center">
       <div className="max-w-5xl w-full space-y-10">
         {stages.map((stage) => {
           // Filtrar por stage válido (sin bonus) y convertir en lista segura

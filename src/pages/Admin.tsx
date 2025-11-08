@@ -32,7 +32,7 @@ export default function Admin() {
   ];
 
   return (
-    <div className="min-h-screen bg-[var(--bg)] text-white p-10 flex flex-col items-center">
+    <div className="main-content min-h-screen bg-[var(--bg)] text-white p-10 flex flex-col items-center">
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}

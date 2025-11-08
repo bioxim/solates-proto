@@ -75,8 +75,13 @@ export default function RightSidebar() {
   }, [xp]);
 
   const handleLogout = async () => {
-    await signOut(auth);
-    navigate("/");
+    try {
+      await signOut(auth);
+      navigate("/", { replace: true }); // 🚀 vuelve limpio a HOME
+      window.location.reload(); // 🔄 asegura que se desmonten los listeners y no quede pantalla vacía
+    } catch (err) {
+      console.error("Error signing out:", err);
+    }
   };
 
   const menuItems = [

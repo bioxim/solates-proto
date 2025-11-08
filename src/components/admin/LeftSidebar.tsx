@@ -12,7 +12,7 @@ const links = [
 
 export default function LeftSidebar() {
   return (
-    <aside className="w-60 min-h-screen bg-[#0d0d0d] border-r border-gray-800 flex flex-col p-4 space-y-2 fixed left-0 top-0">
+    <aside className="main-content w-60 min-h-screen bg-[#0d0d0d] border-r border-gray-800 flex flex-col p-4 space-y-2 fixed left-0 top-0">
       <h2 className="text-xl font-semibold text-[var(--primary)] mb-4">Admin</h2>
       {links.map(({ to, label, icon: Icon }) => (
         <NavLink

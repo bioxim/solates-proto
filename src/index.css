@@ -20,6 +20,11 @@ button, a {
   cursor: pointer;
 }
 
+.main-content {
+  padding-top: 80px; /* ajustá al alto real de tu navbar */
+}
+
+
 /* --- Light theme (default) --- */
 :root {
   --bg: #ffffff;
