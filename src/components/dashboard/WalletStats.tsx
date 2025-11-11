@@ -1,49 +1,145 @@
-import { useEffect, useState } from "react";
+/* eslint-disable react-hooks/exhaustive-deps */
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { CreditCard, ExternalLink, TrendingUp, TrendingDown } from "lucide-react";
+import { CreditCard, TrendingUp, TrendingDown } from "lucide-react";
 import { motion } from "framer-motion";
+import { Connection, PublicKey } from "@solana/web3.js";
+import { db, auth } from "../../firebase";
+import { doc, getDoc } from "firebase/firestore";
+import { onAuthStateChanged } from "firebase/auth";
 
 export default function WalletStats() {
   const [wallet, setWallet] = useState<string | null>(null);
-  const [ola, setOla] = useState<number>(0);
   const [sol, setSol] = useState<number>(0);
-  const [olaChange, setOlaChange] = useState<number>(0);
+  const [snug, setSnug] = useState<number | null>(null);
   const [solChange, setSolChange] = useState<number>(0);
+  const [snugChange, setSnugChange] = useState<number>(0);
+  const [userId, setUserId] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const w = localStorage.getItem("solates_wallet_address");
-    const olaSaved = localStorage.getItem("solates_ola_balance");
-    const solSaved = localStorage.getItem("solates_sol_balance");
+  const warnedInvalidRef = useRef(false);
 
-    setWallet(w);
-    setOla(olaSaved ? Number(olaSaved) : 45.2);
-    setSol(solSaved ? Number(solSaved) : 0.84);
+  const connection = new Connection("https://api.devnet.solana.com");
+  const SNUG_MINT = "HPMrB43LBUnzVNfyeaVZC28kau19MHmxdepTnLqCKopx";
+
+  // --- detectar usuario y asociar wallet por uid ---
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        setWallet(null);
+        setUserId(null);
+        return;
+      }
+
+      setUserId(user.uid);
+      const storageKey = `solates_wallet_${user.uid}`;
+      let stored = localStorage.getItem(storageKey);
+
+      // si no hay wallet guardada, buscar en Firestore
+      if (!stored) {
+        try {
+          const userRef = doc(db, "users", user.uid);
+          const snap = await getDoc(userRef);
+          if (snap.exists()) {
+            const data = snap.data();
+            if (data && typeof data.wallet === "string") {
+              stored = data.wallet;
+              localStorage.setItem(storageKey, stored);
+            }
+          }
+        } catch (err) {
+          console.error("Error reading user wallet from Firestore:", err);
+        }
+      }
+
+      // validar formato de la wallet
+      if (stored) {
+        if (stored.includes("...") || stored.trim().length === 0) {
+          localStorage.removeItem(storageKey);
+          setWallet(null);
+          if (!warnedInvalidRef.current) {
+            console.warn("Invalid wallet format removed from localStorage.");
+            warnedInvalidRef.current = true;
+          }
+          return;
+        }
+
+        try {
+          new PublicKey(stored);
+          setWallet(stored);
+        } catch {
+          localStorage.removeItem(storageKey);
+          setWallet(null);
+          if (!warnedInvalidRef.current) {
+            console.warn("Invalid wallet address detected and cleared:", stored);
+            warnedInvalidRef.current = true;
+          }
+        }
+      } else {
+        setWallet(null);
+      }
+    });
+
+    return () => unsub();
   }, []);
 
-  // 🔹 Simular fluctuaciones cada 10s
+  // --- fetch balances seguro ---
   useEffect(() => {
-    if (!wallet) return;
-    const interval = setInterval(() => {
-      const olaDelta = (Math.random() - 0.5) * 1.2;
-      const solDelta = (Math.random() - 0.5) * 0.03;
-      setOla((prev) => Math.max(0, prev + olaDelta));
-      setSol((prev) => Math.max(0, prev + solDelta));
-      setOlaChange(olaDelta);
-      setSolChange(solDelta);
-    }, 10000);
-    return () => clearInterval(interval);
-  }, [wallet]);
+    if (!wallet) {
+      setSol(0);
+      setSnug(null);
+      return;
+    }
 
-  const connectMock = () => {
-    const mockAddr = "Fz1a...MockSolAddr";
-    localStorage.setItem("solates_wallet_address", mockAddr);
-    localStorage.setItem("solates_ola_balance", "72.4");
-    localStorage.setItem("solates_sol_balance", "1.23");
-    setWallet(mockAddr);
-    setOla(72.4);
-    setSol(1.23);
-  };
+    let pubkey: PublicKey;
+    try {
+      pubkey = new PublicKey(wallet);
+    } catch {
+      console.warn("Invalid wallet (caught at fetch):", wallet);
+      if (userId) localStorage.removeItem(`solates_wallet_${userId}`);
+      setWallet(null);
+      return;
+    }
+
+    let active = true;
+
+    const fetchBalances = async () => {
+      try {
+        const lamports = await connection.getBalance(pubkey);
+        if (!active) return;
+        setSol(lamports / 1e9);
+
+        const tokenAccounts = await connection.getParsedTokenAccountsByOwner(pubkey, {
+          programId: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
+        });
+
+        if (!active) return;
+
+        const snugAcc = tokenAccounts.value.find(
+          (a) => a.account.data.parsed?.info?.mint === SNUG_MINT
+        );
+
+        if (snugAcc) {
+          const amount = snugAcc.account.data.parsed.info.tokenAmount.uiAmount ?? 0;
+          setSnug(amount);
+        } else {
+          setSnug(0);
+        }
+
+        setSolChange((Math.random() - 0.5) * 0.02);
+        setSnugChange((Math.random() - 0.5) * 0.5);
+      } catch (err) {
+        console.error("Error fetching balances:", err);
+      }
+    };
+
+    fetchBalances();
+    const interval = setInterval(fetchBalances, 20000);
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
+  }, [wallet, userId]);
 
   return (
     <motion.div
@@ -60,13 +156,31 @@ export default function WalletStats() {
         </div>
       </div>
 
-      {wallet ? (
-        <motion.div
-          key={wallet}
-          animate={{ opacity: [0.9, 1], scale: [0.99, 1] }}
-          transition={{ repeat: Infinity, duration: 3, repeatType: "reverse" }}
-          className="space-y-3"
-        >
+      {!wallet ? (
+        <div className="text-sm text-gray-400">
+          <p>No wallet associated yet or the stored wallet was invalid.</p>
+          <div className="flex gap-2 mt-3">
+            <button
+              onClick={() => navigate("/profile")}
+              className="px-3 py-1 rounded-md bg-[var(--primary)]/20 hover:bg-[var(--primary)]/30 text-sm"
+            >
+              Go to Profile to link wallet
+            </button>
+            <button
+              onClick={() => {
+                if (userId) {
+                  localStorage.removeItem(`solates_wallet_${userId}`);
+                }
+                setWallet(null);
+              }}
+              className="px-3 py-1 rounded-md bg-gray-800 text-sm"
+            >
+              Clear local wallet
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-3">
           {/* SOL */}
           <div className="flex justify-between items-center">
             <div className="text-sm opacity-80">SOL balance</div>
@@ -80,55 +194,20 @@ export default function WalletStats() {
             </div>
           </div>
 
-          {/* OLA */}
-          <div className="flex justify-between items-center">
-            <div className="text-sm opacity-80">$OLA balance</div>
-            <div className="flex items-center gap-2">
-              <span className="font-semibold">{ola.toFixed(2)} OLA</span>
-              {olaChange >= 0 ? (
-                <TrendingUp size={14} className="text-green-400" />
-              ) : (
-                <TrendingDown size={14} className="text-red-400" />
-              )}
+          {/* SNUG */}
+          {snug !== null && (
+            <div className="flex justify-between items-center">
+              <div className="text-sm opacity-80">$SNUG balance</div>
+              <div className="flex items-center gap-2">
+                <span className="font-semibold">{snug.toFixed(2)} SNUG</span>
+                {snugChange >= 0 ? (
+                  <TrendingUp size={14} className="text-green-400" />
+                ) : (
+                  <TrendingDown size={14} className="text-red-400" />
+                )}
+              </div>
             </div>
-          </div>
-
-          <div className="flex gap-2 mt-4">
-            <button
-              onClick={() => navigate("/portfolio")}
-              className="px-3 py-1 rounded-md bg-[var(--primary)]/20 hover:bg-[var(--primary)]/30 text-sm"
-            >
-              Portfolio
-            </button>
-            <a
-              href={`https://explorer.solana.com/address/${wallet}`}
-              target="_blank"
-              rel="noreferrer"
-              className="px-3 py-1 rounded-md bg-gray-800 hover:bg-gray-700 text-sm flex items-center gap-2"
-            >
-              <ExternalLink size={14} /> View on Solana Explorer
-            </a>
-          </div>
-        </motion.div>
-      ) : (
-        <div className="flex flex-col gap-3">
-          <p className="text-sm opacity-70">
-            Connect a Solana wallet to show on-chain balances and alerts.
-          </p>
-          <div className="flex gap-2">
-            <button
-              onClick={connectMock}
-              className="px-3 py-2 rounded-md bg-[var(--primary)] text-white font-semibold"
-            >
-              Connect Phantom (mock)
-            </button>
-            <button
-              onClick={() => navigate("/wallets")}
-              className="px-3 py-2 rounded-md bg-gray-800"
-            >
-              Manage wallets
-            </button>
-          </div>
+          )}
         </div>
       )}
     </motion.div>

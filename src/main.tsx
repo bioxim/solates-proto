@@ -3,6 +3,9 @@ import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
 import { SolanaWalletContext } from "./context/SolanaWalletContext";
+import { Buffer } from "buffer";
+window.Buffer = Buffer;
+
 
 /**
  * Set theme BEFORE React mounts to avoid FOUC.
