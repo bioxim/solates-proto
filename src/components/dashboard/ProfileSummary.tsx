@@ -1,18 +1,21 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { User, Star } from "lucide-react";
+import { User, Star, Trophy } from "lucide-react";
 import { auth, db } from "../../firebase";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, onSnapshot } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
+import { getRankInfo } from "../../utils/levelSystem"; // 👈 asegúrate que la ruta sea correcta
 
 export default function ProfileSummary() {
   const [uid, setUid] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState<string>("User");
   const [xp, setXp] = useState<number>(0);
   const [level, setLevel] = useState<number>(1);
+  const [rank, setRank] = useState<string>("Explorer");
+  const [multiplier, setMultiplier] = useState<number>(1.0);
   const [avatar, setAvatar] = useState<string | null>(null);
 
-  // 🔹 Escucha del usuario autenticado
+  // --- Detect user ---
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
       if (user) {
@@ -25,41 +28,44 @@ export default function ProfileSummary() {
     return () => unsub();
   }, []);
 
-  // 🔹 Cargar perfil del usuario desde Firestore y localStorage
+  // --- Load and listen to XP in real-time ---
   useEffect(() => {
     if (!uid) return;
+    const userRef = doc(db, "users", uid);
 
-    const fetchProfile = async () => {
-      try {
-        const userRef = doc(db, "users", uid);
-        const snap = await getDoc(userRef);
-        if (snap.exists()) {
-          const data = snap.data();
-          setXp(data.xp || 0);
-          setLevel(data.level || 1);
-        }
+    const unsub = onSnapshot(userRef, (snap) => {
+      if (snap.exists()) {
+        const data = snap.data();
+        const userXP = data.xp || 0;
+        const userLevel = data.level || 1;
+        setXp(userXP);
+        setLevel(userLevel);
 
-        // ✅ Cargar avatar guardado localmente
-        const savedAvatar = localStorage.getItem(`avatar_${uid}`);
-        setAvatar(savedAvatar || null);
-
-      } catch (err) {
-        console.error("Error loading user profile:", err);
+        // ✅ Actualizar rango dinámicamente
+        const rankInfo = getRankInfo(userXP);
+        setRank(rankInfo.rank);
+        setMultiplier(rankInfo.multiplier);
       }
-    };
+    });
 
-    fetchProfile();
+    // ✅ Cargar avatar local
+    const savedAvatar = localStorage.getItem(`avatar_${uid}`);
+    setAvatar(savedAvatar || null);
+
+    return () => unsub();
   }, [uid]);
 
   const progressPercent = Math.min(100, (xp % 100));
+  const xpNeeded = (level * 100) - xp;
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-[var(--card)]/50 p-6 rounded-2xl border border-[var(--card)] shadow-lg backdrop-blur-md"
+      className="bg-[var(--card)]/60 p-6 rounded-2xl border border-[var(--card)] shadow-lg backdrop-blur-md"
     >
       <div className="flex items-center gap-4">
+        {/* --- Avatar --- */}
         <div className="w-20 h-20 rounded-full bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center overflow-hidden border border-gray-700">
           {avatar ? (
             <img src={avatar} alt="avatar" className="w-full h-full object-cover" />
@@ -71,16 +77,18 @@ export default function ProfileSummary() {
           )}
         </div>
 
+        {/* --- Info --- */}
         <div className="flex-1">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-lg font-semibold">{displayName}</h3>
-              <p className="text-sm opacity-70">
-                Welcome back — keep earning XP!
-              </p>
+              <p className="text-sm opacity-70">Welcome back — keep earning XP!</p>
+              <div className="mt-1 flex items-center gap-1 text-sm text-[var(--primary)]">
+                <Trophy size={14} /> <span>{rank}</span>
+              </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               <div className="text-right">
                 <div className="text-xs opacity-70">Level</div>
                 <div className="font-semibold">{level}</div>
@@ -92,30 +100,29 @@ export default function ProfileSummary() {
             </div>
           </div>
 
+          {/* --- XP Progress --- */}
           <div className="mt-4">
             <div className="w-full bg-gray-800 rounded-full h-3 overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-[#b14eff] to-[#00eaff]"
+                className="h-full bg-gradient-to-r from-[#b14eff] to-[#00eaff] transition-all duration-500"
                 style={{ width: `${progressPercent}%` }}
               />
             </div>
             <div className="flex justify-between text-xs opacity-70 mt-2">
               <span>{progressPercent}% to next level</span>
               <span>
-                <Star
-                  size={14}
-                  className="inline-block mr-1 text-[var(--primary)]"
-                />
-                {(level * 100) - xp} XP needed
+                <Star size={14} className="inline-block mr-1 text-[var(--primary)]" />
+                {xpNeeded > 0 ? `${xpNeeded} XP needed` : "Level up soon!"}
               </span>
             </div>
           </div>
         </div>
       </div>
 
+      {/* --- Footer info --- */}
       <div className="mt-4 text-sm opacity-75">
-        <strong>Note:</strong> Mining Hall unlocks at <strong>500 XP</strong> (Level 5).
-        You can also mint missing points later via special contributions (whitepaper / tokenomics stage).
+        <strong>Note:</strong> Mining Hall unlocks at <strong>500 XP</strong> (Level 5).<br />
+        Rank multiplier: <span className="text-[var(--primary)] font-semibold">x{multiplier}</span>
       </div>
     </motion.div>
   );
