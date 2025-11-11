@@ -1,44 +1,51 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom"; // ✅ agregamos useNavigate
+import { useParams, useNavigate } from "react-router-dom";
 import { db, addUserXP } from "../firebase";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import { ArrowLeft } from "lucide-react"; // ✅ icono de back
+import { ArrowLeft, CheckCircle, Clock } from "lucide-react";
 
 interface Quest {
   id: string;
   title: string;
   description: string;
+  content?: string;
   reward: number;
-  contentUrl?: string;
   imageUrl?: string;
-  questions?: { q: string; options: string[]; answer: number }[];
+  question?: string;
+  options?: string[];
+  correctOptionIndex?: number;
+  cooldownHours?: number;
 }
 
 export default function QuestDetail() {
   const { id } = useParams();
-  const navigate = useNavigate(); // ✅ inicializamos navigate
+  const navigate = useNavigate();
   const [quest, setQuest] = useState<Quest | null>(null);
   const [uid, setUid] = useState<string | null>(null);
   const [completed, setCompleted] = useState(false);
+  const [cooldownActive, setCooldownActive] = useState(false);
+  const [cooldownTime, setCooldownTime] = useState<number | null>(null);
+  const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // --- Detect user ---
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (user) => setUid(user ? user.uid : null));
+    const unsub = onAuthStateChanged(auth, (user) =>
+      setUid(user ? user.uid : null)
+    );
     return () => unsub();
   }, []);
 
+  // --- Load quest ---
   useEffect(() => {
     const fetchQuest = async () => {
       try {
-        const docRef = doc(db, "quests", id!);
-        const snap = await getDoc(docRef);
-        if (snap.exists()) {
-          setQuest({ id: snap.id, ...snap.data() } as Quest);
-        }
+        const snap = await getDoc(doc(db, "quests", id!));
+        if (snap.exists()) setQuest({ id: snap.id, ...snap.data() } as Quest);
       } catch (err) {
-        console.error("Error cargando quest:", err);
+        console.error("Error loading quest:", err);
       } finally {
         setLoading(false);
       }
@@ -46,27 +53,66 @@ export default function QuestDetail() {
     fetchQuest();
   }, [id]);
 
-  const handleComplete = async () => {
-    if (!uid || !quest) return;
-    try {
-      const userQuestRef = doc(db, `users/${uid}/completedQuests/${quest.id}`);
-      const existing = await getDoc(userQuestRef);
-      if (existing.exists()) {
-        setCompleted(true);
-        alert("Already completed!");
-        return;
+  // --- Check user quest progress ---
+  useEffect(() => {
+    if (!uid || !id) return;
+    const checkProgress = async () => {
+      const questRef = doc(db, `users/${uid}/completedQuests/${id}`);
+      const snap = await getDoc(questRef);
+
+      if (snap.exists()) {
+        const data = snap.data();
+        setCompleted(!!data.completed);
+        if (data.lastAttempt) {
+          const lastAttempt = data.lastAttempt.toDate
+            ? data.lastAttempt.toDate()
+            : data.lastAttempt;
+          const now = new Date();
+          const diffHours =
+            (now.getTime() - new Date(lastAttempt).getTime()) / 1000 / 3600;
+          const cooldown = quest?.cooldownHours || 24;
+          if (diffHours < cooldown) {
+            setCooldownActive(true);
+            setCooldownTime(Math.ceil(cooldown - diffHours));
+          }
+        }
       }
+    };
+    checkProgress();
+  }, [uid, id, quest?.cooldownHours]);
 
-      await setDoc(userQuestRef, {
-        completedAt: new Date(),
-        reward: quest.reward,
-      });
+  // --- Handle Answer ---
+  const handleAnswer = async () => {
+    if (!uid || !quest) return alert("You must be logged in!");
+    if (completed) return alert("You already completed this quest!");
+    if (cooldownActive) return alert("You must wait before trying again!");
 
-      await addUserXP(uid, quest.reward);
-      setCompleted(true);
-      alert(`Quest completed! You earned ${quest.reward} XP 🎉`);
+    try {
+      const correct = selectedOption === quest.correctOptionIndex;
+      const questRef = doc(db, `users/${uid}/completedQuests/${quest.id}`);
+
+      if (correct) {
+        await setDoc(questRef, {
+          completed: true,
+          completedAt: serverTimestamp(),
+          reward: quest.reward,
+        });
+        await addUserXP(uid, quest.reward);
+        setCompleted(true);
+        alert(`✅ Correct! You earned ${quest.reward} XP 🎉`);
+      } else {
+        await setDoc(questRef, {
+          completed: false,
+          lastAttempt: serverTimestamp(),
+        });
+        setCooldownActive(true);
+        setCooldownTime(quest.cooldownHours || 24);
+        alert(
+          `❌ Wrong answer! Try again in ${quest.cooldownHours || 24} hours.`
+        );
+      }
     } catch (err) {
-      console.error("Error completing quest:", err);
+      console.error("Error saving quest progress:", err);
     }
   };
 
@@ -74,9 +120,9 @@ export default function QuestDetail() {
   if (!quest) return <p className="text-red-400">Quest not found.</p>;
 
   return (
-    <div className="min-h-screen bg-[var(--bg)] text-[var(--text)] flex flex-col items-center p-6">
+    <div className="main-content min-h-screen bg-[var(--bg)] text-[var(--text)] flex flex-col items-center p-6">
       <div className="max-w-3xl w-full">
-        {/* ✅ Botón de Back */}
+        {/* Back button */}
         <button
           onClick={() => navigate(-1)}
           className="flex items-center gap-2 text-sm text-[var(--primary)] mb-4 hover:underline"
@@ -84,9 +130,19 @@ export default function QuestDetail() {
           <ArrowLeft size={16} /> Back
         </button>
 
-        <div className="bg-gray-900 p-6 rounded-lg shadow-lg">
-          <h1 className="text-3xl font-bold text-green-400 mb-4">{quest.title}</h1>
-          <p className="text-gray-300 mb-6">{quest.description}</p>
+        <div className="bg-gray-900 p-6 rounded-lg shadow-lg border border-gray-800">
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-3xl font-bold text-green-400">
+              {quest.title}
+            </h1>
+            {completed ? (
+              <CheckCircle className="text-green-400" size={28} />
+            ) : cooldownActive ? (
+              <Clock className="text-yellow-400" size={28} />
+            ) : null}
+          </div>
+
+          <p className="text-gray-300 mb-4">{quest.description}</p>
 
           {quest.imageUrl && (
             <img
@@ -96,27 +152,63 @@ export default function QuestDetail() {
             />
           )}
 
-          {quest.contentUrl && (
-            <a
-              href={quest.contentUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-green-400 hover:underline mb-6 block"
-            >
-              View Content
-            </a>
+          {quest.content && (
+            <p className="text-gray-200 mb-6 leading-relaxed">{quest.content}</p>
+          )}
+
+          {quest.question && (
+            <div className="mt-4 space-y-3">
+              <h2 className="text-lg font-semibold text-[var(--primary)] mb-2">
+                {quest.question}
+              </h2>
+              {quest.options?.map((opt, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setSelectedOption(idx)}
+                  className={`w-full p-3 text-left rounded-lg border transition-all ${
+                    selectedOption === idx
+                      ? "bg-green-500/20 border-green-500"
+                      : "bg-gray-800 border-gray-700 hover:border-green-400"
+                  }`}
+                  disabled={completed || cooldownActive}
+                >
+                  {opt}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Estado visual debajo */}
+          {completed && (
+            <p className="mt-4 text-green-400 text-center font-semibold">
+              ✅ Quest completed successfully!
+            </p>
+          )}
+          {cooldownActive && (
+            <p className="mt-4 text-yellow-400 text-center font-semibold">
+              ⏳ Try again in {cooldownTime} hour
+              {cooldownTime && cooldownTime > 1 ? "s" : ""}.
+            </p>
           )}
 
           <button
-            onClick={handleComplete}
-            disabled={completed}
-            className={`w-full mt-4 p-3 rounded font-bold ${
+            onClick={handleAnswer}
+            disabled={completed || cooldownActive || selectedOption === null}
+            className={`w-full mt-6 p-3 rounded font-bold transition-all ${
               completed
-                ? "bg-gray-600 text-gray-300 cursor-not-allowed"
+                ? "bg-gray-700 text-gray-300 cursor-not-allowed"
+                : cooldownActive
+                ? "bg-yellow-500 text-black cursor-not-allowed"
                 : "bg-green-500 hover:bg-green-600 text-black"
             }`}
           >
-            {completed ? "Completed!" : `Complete Quest (+${quest.reward} XP)`}
+            {completed
+              ? "✅ Quest Completed"
+              : cooldownActive
+              ? "⏳ Cooldown Active"
+              : selectedOption === null
+              ? "Select an Answer"
+              : `Complete Quest (+${quest.reward} XP)`}
           </button>
         </div>
       </div>
