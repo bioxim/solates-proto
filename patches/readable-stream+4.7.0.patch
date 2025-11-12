@@ -1,0 +1,13 @@
+diff --git a/node_modules/readable-stream/lib/internal/streams/end-of-stream.js b/node_modules/readable-stream/lib/internal/streams/end-of-stream.js
+index 94d1832..c34900a 100644
+--- a/node_modules/readable-stream/lib/internal/streams/end-of-stream.js
++++ b/node_modules/readable-stream/lib/internal/streams/end-of-stream.js
+@@ -5,7 +5,7 @@
+ 
+ /* replacement start */
+ 
+-const process = require('process/')
++const process = require('process/browser.js')
+ 
+ /* replacement end */
+ 
