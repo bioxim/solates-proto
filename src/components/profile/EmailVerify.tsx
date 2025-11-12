@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { motion } from "framer-motion";
 import { Mail } from "lucide-react";
 import { useEffect } from "react";
