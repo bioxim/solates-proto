@@ -18,12 +18,8 @@ export default defineConfig({
 
   resolve: {
     alias: {
-      // ✅ VOLVEMOS A LA RUTA ABSOLUTA SOLO PARA 'PROCESS'
-      // Rolldown lo requiere en local para resolverlo correctamente.
       process: resolve(__dirname, "node_modules/process/browser.js"), 
-      
-      // Mantenemos las alias simples para el resto, que suelen ser más robustas
-      // en el entorno de Vercel/Producción.
+    
       stream: "stream-browserify",
       util: "util",
       zlib: "browserify-zlib",
