@@ -18,7 +18,7 @@ export default defineConfig({
 
   resolve: {
     alias: {
-      process: resolve(__dirname, "node_modules/process/browser.js"), 
+      process: resolve(__dirname, "node_modules/process"), 
     
       stream: "stream-browserify",
       util: "util",

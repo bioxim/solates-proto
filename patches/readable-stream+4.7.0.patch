@@ -1,13 +1,17 @@
 diff --git a/node_modules/readable-stream/lib/internal/streams/end-of-stream.js b/node_modules/readable-stream/lib/internal/streams/end-of-stream.js
-index 94d1832..c34900a 100644
+index 94d1832..bcb6770 100644
 --- a/node_modules/readable-stream/lib/internal/streams/end-of-stream.js
 +++ b/node_modules/readable-stream/lib/internal/streams/end-of-stream.js
-@@ -5,7 +5,7 @@
+@@ -3,11 +3,8 @@
  
- /* replacement start */
+ 'use strict'
  
--const process = require('process/')
+-/* replacement start */
 +const process = require('process/browser.js')
  
- /* replacement end */
+-const process = require('process/')
+-
+-/* replacement end */
  
+ const { AbortError, codes } = require('../../ours/errors')
+ const { ERR_INVALID_ARG_TYPE, ERR_STREAM_PREMATURE_CLOSE } = codes
