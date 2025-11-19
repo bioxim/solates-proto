@@ -1,12 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { Config } from "tailwindcss";
 import typography from "@tailwindcss/typography";
 
-const config: Config = {
+const config = {
   darkMode: "class",
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  safelist: [
+    "prose",
+    "prose-sm",
+    "prose-lg",
+    "prose-invert",
   ],
   theme: {
     extend: {
@@ -26,9 +31,7 @@ const config: Config = {
       },
     },
   },
-  plugins: [
-    typography as any
-  ],
-};
+  plugins: [typography],
+} as any;
 
 export default config;
