@@ -1,4 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Config } from "tailwindcss";
+import typography from "@tailwindcss/typography";
 
 const config: Config = {
   darkMode: "class",
@@ -18,13 +20,15 @@ const config: Config = {
           dark: "#111827",
         },
         primary: {
-          DEFAULT: "#00C2FF",
-          dark: "#00E0FF",
+          DEFAULT: "#f200ffff",
+          dark: "#7c008aff",
         },
       },
     },
   },
-  plugins: [],
+  plugins: [
+    typography as any
+  ],
 };
 
 export default config;

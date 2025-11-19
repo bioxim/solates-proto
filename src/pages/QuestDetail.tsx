@@ -5,6 +5,7 @@ import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { ArrowLeft, CheckCircle, Clock } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 
 interface Quest {
   id: string;
@@ -153,7 +154,9 @@ export default function QuestDetail() {
           )}
 
           {quest.content && (
-            <p className="text-gray-200 mb-6 leading-relaxed">{quest.content}</p>
+            <div className="prose prose-invert prose-headings:text-green-400 prose-p:text-gray-200 prose-strong:text-white max-w-none mb-6">
+              <ReactMarkdown>{quest.content}</ReactMarkdown>
+            </div>
           )}
 
           {quest.question && (
