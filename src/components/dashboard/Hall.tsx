@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { doc, onSnapshot } from "firebase/firestore";
 import { auth, db } from "../../firebase"; 
 
-export default function MiningLink() {
+export default function Hall() {
   const [xp, setXp] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const REQUIRED_XP = 500;
@@ -45,12 +45,12 @@ export default function MiningLink() {
             <Cpu />
           </div>
           <div>
-            <div className="font-semibold">Mining Hall</div>
+            <div className="font-semibold">$OLA Hall</div>
             <div className="text-xs opacity-70">
               {loading
                 ? "Loading..."
                 : unlocked
-                ? "Unlocked — access the mining arena"
+                ? "Unlocked — access the $OLA Hall, Solates exclusive investment platform"
                 : `Locked — reach ${REQUIRED_XP} XP (Level 5) to unlock`}
             </div>
           </div>

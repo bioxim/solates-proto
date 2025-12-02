@@ -15,6 +15,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import HallItem from "./HallItem";
 
 export default function RightSidebar() {
   const [open, setOpen] = useState(true);
@@ -33,7 +34,6 @@ export default function RightSidebar() {
         setUserEmail(user.email || null);
         const userRef = doc(db, "users", user.uid);
 
-        // 🔥 Escucha en tiempo real los cambios de XP / Level
         const unsubscribeSnapshot = onSnapshot(userRef, (snap) => {
           if (snap.exists()) {
             const data = snap.data();
@@ -52,20 +52,15 @@ export default function RightSidebar() {
     return () => unsub();
   }, []);
 
-  // 🧭 Clothing sidebar while changing routes
-  useEffect(() => {
-    setOpen(false);
-  }, [location.pathname]);
+  useEffect(() => setOpen(false), [location.pathname]);
+  
+  // Nota: Tenías dos useEffects para setOpen(false), dejé uno consolidado arriba si quieres que arranque cerrado, 
+  // o elimina el de location.pathname si quieres que persista. 
+  // Asumo que quieres que arranque abierto o cerrado según preferencia, aquí lo dejo como estaba:
+  useEffect(() => setOpen(false), []); 
 
-  // 🔄 Always closed when refreshed
-  useEffect(() => {
-    setOpen(false);
-  }, []);
-
-
-
-  // 🧮 Calcular porcentaje y rango
   const progress = xp % 100;
+
   useEffect(() => {
     if (xp < 500) setRank("Explorer");
     else if (xp < 1000) setRank("Trader");
@@ -77,18 +72,18 @@ export default function RightSidebar() {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      navigate("/", { replace: true }); // 🚀 vuelve limpio a HOME
-      window.location.reload(); // 🔄 asegura que se desmonten los listeners y no quede pantalla vacía
+      navigate("/", { replace: true });
+      window.location.reload();
     } catch (err) {
       console.error("Error signing out:", err);
     }
   };
 
   const menuItems = [
-    { icon: <User size={20} />, label: "Profile", path: "/profile" },
-    { icon: <Target size={20} />, label: "Quests", path: "/quests" },
-    { icon: <Home size={20} />, label: "Dashboard", path: "/dashboard" },
-    { icon: <Gift size={20} />, label: "Invite Friends", path: "/invite-friends" },
+    { icon: <User size={20} />, label: "Profile", path: "/profile", locked: false },
+    { icon: <Target size={20} />, label: "Quests", path: "/quests", locked: false },
+    { icon: <Home size={20} />, label: "Dashboard", path: "/dashboard", locked: false },
+    { icon: <Gift size={20} />, label: "Invite Friends", path: "/invite-friends", locked: false },
   ];
 
   return (
@@ -103,24 +98,26 @@ export default function RightSidebar() {
       {/* Toggle */}
       <button
         onClick={() => setOpen(!open)}
-        className="absolute top-20 left-[-26px] bg-[var(--card)] p-1.5 rounded-l-md border border-[var(--card)] hover:bg-[var(--primary)] hover:opacity-90 transition cursor-pointer shadow-md"
+        className="absolute top-20 left-[-26px] bg-[var(--card)] p-1.5 rounded-l-md border border-[var(--card)] hover:bg-[var(--primary)] hover:opacity-90 transition cursor-pointer shadow-md text-white z-50"
         title={open ? "Hide" : "Show"}
       >
         {open ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
       </button>
 
       {/* Sidebar content */}
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         <motion.div
-          key={open ? "open" : "closed"}
-          initial={{ opacity: 0, x: 40 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: 40 }}
-          transition={{ duration: 0.3 }}
-          className="p-4 flex flex-col items-center gap-6 mt-12"
+          // Quitamos la key basada en 'open' para evitar que todo el DOM se destruya al colapsar,
+          // lo que hace que los tooltips funcionen mejor.
+          layout 
+          className="p-4 flex flex-col items-center gap-6 mt-12 w-full"
         >
+          {/* XP BAR - Solo visible si abierto */}
           {open && (
-            <div className="w-full text-center">
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="w-full text-center"
+            >
               <p className="text-sm opacity-70">Level {level}</p>
               <div className="mt-2 bg-gray-700 rounded-full h-3 overflow-hidden shadow-inner">
                 <motion.div
@@ -131,46 +128,44 @@ export default function RightSidebar() {
                 />
               </div>
               <p className="text-xs mt-1 opacity-70">{xp} XP • {rank}</p>
-            </div>
+            </motion.div>
           )}
 
-          {/* Menu */}
+          {/* MENU */}
           <div
-            className={`flex flex-col ${
-              open ? "items-start" : "items-center"
-            } gap-4 w-full mt-4`}
+            className={`flex flex-col ${open ? "items-start" : "items-center"} gap-4 w-full mt-4`}
           >
             {menuItems.map((item, idx) => {
               const isActive = location.pathname === item.path;
+
               return (
                 <button
                   key={idx}
-                  onClick={() => navigate(item.path)}
-                  className={`group relative flex items-center gap-3 w-full rounded-lg py-2 px-2 transition-all duration-200 cursor-pointer
-                    ${
-                      isActive
-                        ? "bg-[var(--primary)]/20 text-[var(--primary)] font-semibold"
-                        : open
-                        ? "hover:bg-[var(--primary)]/10"
-                        : "hover:bg-[var(--primary)]/20"
-                    }`}
+                  onClick={() => item.path && navigate(item.path)}
+                  disabled={item.locked}
+                  // Aquí aseguramos cursor-pointer y group para el hover
+                  className={`group relative flex items-center gap-3 w-full rounded-lg py-2 px-2 transition-all duration-200 
+                    ${item.locked 
+                        ? "opacity-40 cursor-not-allowed" 
+                        : "cursor-pointer hover:bg-[var(--primary)]/10"
+                    }
+                    ${isActive ? "bg-[var(--primary)]/20 text-[var(--primary)]" : ""}
+                    ${!open ? "justify-center" : ""}
+                  `}
                 >
-                  <motion.div
-                    whileHover={{ scale: 1.1 }}
-                    className={`${
-                      isActive ? "text-[var(--primary)]" : "text-[var(--text)]"
-                    }`}
-                  >
+                  {/* Ícono */}
+                  <div className="relative z-10">
                     {item.icon}
-                  </motion.div>
+                  </div>
 
-                  {open && (
+                  {/* Texto cuando expandido */}
+                  {open && <span className="text-sm font-medium whitespace-nowrap">{item.label}</span>}
+
+                  {/* Tooltip cuando colapsado */}
+                  {!open && (
                     <span
-                      className={`text-sm font-medium transition ${
-                        isActive
-                          ? "text-[var(--primary)]"
-                          : "group-hover:text-[var(--primary)]"
-                      }`}
+                      className="absolute left-14 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 
+                      bg-black text-white text-xs py-1 px-2 rounded-md whitespace-nowrap z-50 pointer-events-none border border-gray-800 shadow-xl"
                     >
                       {item.label}
                     </span>
@@ -179,16 +174,18 @@ export default function RightSidebar() {
               );
             })}
 
-            {/* Admin Panel — solo visible para vos */}
+            {/* OLA HALL / MINING LINK */}
+            {/* Pasamos !open como collapsed */}
+            <div className="w-full">
+                <HallItem collapsed={!open} />
+            </div>
+
+            {/* ADMIN */}
             {userEmail === ADMIN_EMAIL && (
               <button
                 onClick={() => navigate("/admin")}
-                className={`group flex items-center gap-3 w-full rounded-lg py-2 px-2 transition-all duration-200 cursor-pointer border-t border-[var(--card)] pt-4 mt-4
-                  ${
-                    open
-                      ? "hover:bg-[var(--primary)]/10"
-                      : "hover:bg-[var(--primary)]/20"
-                  }`}
+                className={`group relative flex items-center gap-3 w-full rounded-lg py-2 px-2 transition-all duration-200 cursor-pointer border-t border-[var(--card)] pt-4 mt-4
+                  ${open ? "hover:bg-[var(--primary)]/10" : "justify-center hover:bg-[var(--primary)]/20"}`}
               >
                 <ShieldCheck size={20} className="text-[var(--primary)]" />
                 {open && (
@@ -196,18 +193,35 @@ export default function RightSidebar() {
                     Admin Panel
                   </span>
                 )}
+
+                {!open && (
+                  <span className="absolute left-14 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition 
+                  bg-black text-white text-xs py-1 px-2 rounded-md whitespace-nowrap z-50 pointer-events-none border border-gray-800">
+                    Admin Panel
+                  </span>
+                )}
               </button>
             )}
 
-            {/* 🔴 Logout */}
+            {/* LOGOUT */}
             <button
               onClick={handleLogout}
-              className={`group flex items-center gap-3 w-full text-red-400 hover:text-red-500 transition py-2 px-2 rounded-lg ${
+              className={`group relative flex items-center gap-3 w-full text-red-400 hover:text-red-500 hover:bg-red-500/10 transition py-2 px-2 rounded-lg cursor-pointer ${
                 open ? "justify-start" : "justify-center"
               }`}
             >
               <LogOut size={20} />
+
               {open && <span className="text-sm font-medium">Logout</span>}
+
+              {!open && (
+                <span
+                  className="absolute left-14 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition 
+                  bg-black text-white text-xs py-1 px-2 rounded-md whitespace-nowrap z-50 pointer-events-none border border-gray-800"
+                >
+                  Logout
+                </span>
+              )}
             </button>
           </div>
         </motion.div>

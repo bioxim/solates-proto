@@ -3,7 +3,7 @@ import DailyCheckIn from "../components/dashboard/DailyCheckIn";
 import NextQuest from "../components/dashboard/NextQuest";
 import WalletStats from "../components/dashboard/WalletStats";
 import LiquidityAlerts from "../components/dashboard/LiquidityAlerts";
-import MiningLink from "../components/dashboard/MiningLink";
+import Hall from "../components/dashboard/Hall";
 import { motion } from "framer-motion";
 
 export default function Dashboard() {
@@ -86,9 +86,9 @@ export default function Dashboard() {
             </section>
 
             <section>
-              <h2 className="text-lg font-semibold mb-2">Mining Access</h2>
-              <p className="text-sm opacity-70 mb-3">Unlock the $OLA Mining Hall at 500 XP.</p>
-              <MiningLink />
+              <h2 className="text-lg font-semibold mb-2">Solates Platform Access</h2>
+              <p className="text-sm opacity-70 mb-3">Unlock the $OLA Hall at 500 XP.</p>
+              <Hall />
             </section>
           </div>
         </div>
