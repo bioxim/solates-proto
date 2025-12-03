@@ -21,7 +21,6 @@ import VerifyEmail from "./components/newsletter/EmailVerify";
 import Home from "./pages/Home";
 import Docs from "./pages/Docs";
 import Airdrop from "./pages/Airdrop";
-import Leaderboard from "./pages/Leaderboard";
 
 // Docs pages
 import Whitepaper from "./pages/docs/Whitepaper";
@@ -69,7 +68,6 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="/docs" element={<Docs />} />
             <Route path="/airdrop" element={<Airdrop />} />
-            <Route path="/leaderboard" element={<Leaderboard />} />
 
             {/* 🌍 Newsletter routes */}
             <Route path="/" element={<Newsletter />} />
