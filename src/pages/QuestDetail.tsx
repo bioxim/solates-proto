@@ -6,6 +6,8 @@ import { auth } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { ArrowLeft, CheckCircle, Clock } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import remarkBreaks from "remark-breaks";
 
 interface Quest {
   id: string;
@@ -155,7 +157,7 @@ export default function QuestDetail() {
 
           {quest.content && (
             <div className="prose prose-invert prose-headings:text-green-400 prose-p:text-gray-200 prose-strong:text-white max-w-none mb-6">
-              <ReactMarkdown>{quest.content}</ReactMarkdown>
+              <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>{quest.content}</ReactMarkdown>
             </div>
           )}
 
@@ -168,11 +170,10 @@ export default function QuestDetail() {
                 <button
                   key={idx}
                   onClick={() => setSelectedOption(idx)}
-                  className={`w-full p-3 text-left rounded-lg border transition-all ${
-                    selectedOption === idx
-                      ? "bg-green-500/20 border-green-500"
-                      : "bg-gray-800 border-gray-700 hover:border-green-400"
-                  }`}
+                  className={`w-full p-3 text-left rounded-lg border transition-all ${selectedOption === idx
+                    ? "bg-green-500/20 border-green-500"
+                    : "bg-gray-800 border-gray-700 hover:border-green-400"
+                    }`}
                   disabled={completed || cooldownActive}
                 >
                   {opt}
@@ -197,21 +198,20 @@ export default function QuestDetail() {
           <button
             onClick={handleAnswer}
             disabled={completed || cooldownActive || selectedOption === null}
-            className={`w-full mt-6 p-3 rounded font-bold transition-all ${
-              completed
-                ? "bg-gray-700 text-gray-300 cursor-not-allowed"
-                : cooldownActive
+            className={`w-full mt-6 p-3 rounded font-bold transition-all ${completed
+              ? "bg-gray-700 text-gray-300 cursor-not-allowed"
+              : cooldownActive
                 ? "bg-yellow-500 text-black cursor-not-allowed"
                 : "bg-green-500 hover:bg-green-600 text-black"
-            }`}
+              }`}
           >
             {completed
               ? "✅ Quest Completed"
               : cooldownActive
-              ? "⏳ Cooldown Active"
-              : selectedOption === null
-              ? "Select an Answer"
-              : `Complete Quest (+${quest.reward} XP)`}
+                ? "⏳ Cooldown Active"
+                : selectedOption === null
+                  ? "Select an Answer"
+                  : `Complete Quest (+${quest.reward} XP)`}
           </button>
         </div>
       </div>

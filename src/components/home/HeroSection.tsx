@@ -4,7 +4,7 @@ import logo from "../../assets/logo-tr.png";
 import { auth } from "../../firebase";
 
 export default function HeroSection({ onOpenLoginModal }: { onOpenLoginModal: () => void }) {
-  
+
   const handleClick = () => {
     const user = auth.currentUser;
 
@@ -31,7 +31,7 @@ export default function HeroSection({ onOpenLoginModal }: { onOpenLoginModal: ()
       />
 
       <motion.h1
-        className="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-violet-400 to-cyan-300 bg-clip-text text-transparent"
+        className="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-violet-400 to-cyan-300 bg-clip-text text-transparent pb-8"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
       >
